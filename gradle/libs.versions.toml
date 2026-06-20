@@ -19,7 +19,7 @@ lifecycle = "2.11.0"
 activityCompose = "1.13.0"
 composeBom = "2026.05.00"      # Pins all androidx.compose.* artifact versions together
 navigationCompose = "2.9.8"
-datastore = "1.1.7"
+datastore = "1.2.1"
 room = "2.8.4"                 # Room 2.x (maintenance line); Kotlin-codegen via KSP
 
 # Kotlinx ------------------------------------------------------------------------
