@@ -53,9 +53,10 @@ android {
     // differ, and renaming it would mean rewriting every package declaration.
     namespace = "com.kusl.myweather"
 
-    // Compile against API 36 (latest available to AGP 8.13) while targeting the
-    // requested API 35 and supporting Android 14 (API 34) as the floor.
-    compileSdk = 36
+    // Compile against API 37 — required by androidx.lifecycle 2.11.0, whose AAR
+    // metadata mandates compileSdk >= 37 — while still targeting the requested
+    // API 35 and supporting Android 14 (API 34) as the floor.
+    compileSdk = 37
 
     defaultConfig {
         // Installable / store-facing application identity. Deliberately distinct
