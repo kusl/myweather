@@ -7,7 +7,7 @@
 
 DUMP METADATA
 ═════════════════════════════════════════════════════════════════════════════════
-  Generated at   : 2026-06-20T12:49:11-04:00
+  Generated at   : 2026-06-20T13:21:44-04:00
   Generator      : export.sh
   Host           : fedora
   User           : kushal
@@ -17,17 +17,17 @@ REPOSITORY METADATA
 ═════════════════════════════════════════════════════════════════════════════════
   Repository root: /home/kushal/src/kotlin/myweather
   Branch         : main
-  Commit (full)  : 5a7667ef977bee9bcf2d789596d79cb5d2901b29
-  Commit (short) : 5a7667e
-  Commit date    : 2026-06-20 12:23:30 -0400
-  Commit message : run dump
+  Commit (full)  : 2e37e2de5668ab34b18b3021af8cfb637cd91210
+  Commit (short) : 2e37e2d
+  Commit date    : 2026-06-20 13:21:36 -0400
+  Commit message : add claude response
   Remote origin  : git@github.com:kusl/myweather.git
-  Files included : 81
+  Files included : 82
   Excluded path  : docs/llm/
 
 GIT WORKING TREE STATUS (first 20 lines)
 ═════════════════════════════════════════════════════════════════════════════════
- M .gitignore
+  (clean — no uncommitted changes)
 
 ################################################################################
 # FILE: export.sh  [THIS SCRIPT — included for full context]
@@ -395,7 +395,7 @@ FOOTER
 mv -f "$TMP_FILE" "$OUTPUT_FILE"
 
 ################################################################################
-# FILE TREE  (all 81 included files)
+# FILE TREE  (all 82 included files)
 ################################################################################
 .
 .
@@ -516,6 +516,7 @@ mv -f "$TMP_FILE" "$OUTPUT_FILE"
 │   ├── CACHING.md
 │   └── PRIVACY.md
 ├── export.sh
+├── fix.sh
 ├── .github
 │   ├── dependabot.yml
 │   └── workflows
@@ -1464,15 +1465,15 @@ abstract class WeatherDatabase : RoomDatabase() {
   File name:             LocationProvider.kt
   Relative path:         app/src/main/java/com/kusl/myweather/data/location/LocationProvider.kt
   Absolute path:         /home/kushal/src/kotlin/myweather/app/src/main/java/com/kusl/myweather/data/location/LocationProvider.kt
-  Size:                  3.3 KiB (3481 bytes)
-  Last modified:         2026-06-19 17:03:22.000000000 -0400
+  Size:                  3.4 KiB (3558 bytes)
+  Last modified:         2026-06-20 13:21:00.610624013 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
-  Inode:                 16257554
+  Inode:                 16460677
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               f6e12b083f8de89490391f6bd1e4d902959bfb4c0360e12ca9009a53d72bddfa
-  Last git commit:       0386d8e 2026-06-20 08:06:03 -0400 move one folder up
+  SHA-256:               eeec4f35b518ddba110657d272bda209247f41cb6a3d33ce640ed1ff4186e729
+  Last git commit:       2e37e2d 2026-06-20 13:21:36 -0400 add claude response
 
 --- CONTENT ---
 package com.kusl.myweather.data.location
@@ -1506,6 +1507,7 @@ class LocationProvider(private val context: Context) : LocationSource {
             ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) ==
             PackageManager.PERMISSION_GRANTED
 
+    @Suppress("MissingPermission") // hasPermission() is checked at the top.
     override suspend fun currentLocation(): LocationResult {
         if (!hasPermission()) return LocationResult.PermissionDenied
         val manager = locationManager ?: return LocationResult.Unavailable
@@ -6206,6 +6208,101 @@ mv -f "$TMP_FILE" "$OUTPUT_FILE"
 
 
 ################################################################################
+# FILE: fix.sh
+################################################################################
+
+--- METADATA ---
+  File name:             fix.sh
+  Relative path:         fix.sh
+  Absolute path:         /home/kushal/src/kotlin/myweather/fix.sh
+  Size:                  3.3 KiB (3404 bytes)
+  Last modified:         2026-06-20 13:20:23.169471640 -0400
+  Permissions:           -rw-r--r--
+  Owner:                 kushal:kushal
+  Inode:                 16460403
+  Hard links:            1
+  MIME type:             text/x-shellscript
+  SHA-256:               7c43f846d52950b6890d01648f3d6aac46b12d4cd20602e256ea7c46a62eaba2
+  Last git commit:       2e37e2d 2026-06-20 13:21:36 -0400 add claude response
+
+--- CONTENT ---
+#!/usr/bin/env bash
+#
+# fix-myweather.sh — applies the mechanical fixes for kusl/myweather:
+#   * all Dependabot Gradle version bumps   (gradle/libs.versions.toml)
+#   * all Dependabot GitHub Actions bumps    (.github/workflows/*.yml)
+#   * the lint MissingPermission fix         (LocationProvider.kt)
+#   * removes the stray duplicate files left over from the folder move
+#   * hardens .gitignore so the base64 keystore can never be committed
+#
+# It does NOT touch your signing secrets — set those manually (see chat notes).
+# Run from the repo root, review `git diff`, then commit & push.
+#
+set -euo pipefail
+
+# --- safety: must be at the repo root --------------------------------------
+if [[ ! -f settings.gradle.kts || ! -f gradle/libs.versions.toml ]]; then
+  echo "ERROR: run this from the myweather repo root (where settings.gradle.kts is)." >&2
+  exit 1
+fi
+
+echo "==> Gradle version bumps  (gradle/libs.versions.toml)"
+# Anchored on  key = "..."  so only the [versions] lines change, never the
+# [libraries] block (note there is also an  okhttp = { ... }  library entry).
+sed -i \
+  -e 's/^lifecycle = "[^"]*"/lifecycle = "2.11.0"/' \
+  -e 's/^activityCompose = "[^"]*"/activityCompose = "1.13.0"/' \
+  -e 's/^navigationCompose = "[^"]*"/navigationCompose = "2.9.8"/' \
+  -e 's/^coroutines = "[^"]*"/coroutines = "1.11.0"/' \
+  -e 's/^okhttp = "[^"]*"/okhttp = "5.4.0"/' \
+  -e 's/^androidxJunit = "[^"]*"/androidxJunit = "1.3.0"/' \
+  -e 's/^espresso = "[^"]*"/espresso = "3.7.0"/' \
+  gradle/libs.versions.toml
+# (agp is already 9.2.1 — Dependabot PR #2 needs no change.)
+
+echo "==> GitHub Actions bumps  (.github/workflows/*.yml)"
+sed -i \
+  -e 's#actions/checkout@v5#actions/checkout@v7#g' \
+  -e 's#actions/setup-java@v4#actions/setup-java@v5#g' \
+  -e 's#gradle/actions/setup-gradle@v4#gradle/actions/setup-gradle@v6#g' \
+  -e 's#actions/upload-artifact@v4#actions/upload-artifact@v7#g' \
+  -e 's#softprops/action-gh-release@v2#softprops/action-gh-release@v3#g' \
+  .github/workflows/*.yml
+# (reactivecircus/android-emulator-runner stays at @v2 — Dependabot has no PR for it.)
+
+echo "==> Lint fix  (LocationProvider.kt)"
+LP="app/src/main/java/com/kusl/myweather/data/location/LocationProvider.kt"
+MARK='@Suppress("MissingPermission") // hasPermission() is checked at the top.'
+if ! grep -qF "$MARK" "$LP"; then
+  sed -i 's#^    override suspend fun currentLocation(): LocationResult {#    @Suppress("MissingPermission") // hasPermission() is checked at the top.\n    override suspend fun currentLocation(): LocationResult {#' "$LP"
+  echo "    added @Suppress to currentLocation()"
+else
+  echo "    already fixed"
+fi
+
+echo "==> Removing stray duplicates left over from the folder move"
+for stray in app-build.gradle.kts libs.versions.toml WeatherRepositoryImpl.kt; do
+  if [[ -e "$stray" ]]; then
+    git rm -q -- "$stray" 2>/dev/null || rm -f -- "$stray"
+    echo "    removed ./$stray"
+  fi
+done
+
+echo "==> Hardening .gitignore"
+if ! grep -qxF 'release.keystore.base64' .gitignore 2>/dev/null; then
+  printf '\n# base64-encoded keystore — never commit\nrelease.keystore.base64\n*.base64\n' >> .gitignore
+  echo "    added base64 keystore ignore rule"
+fi
+
+echo
+echo "Done. Now:"
+echo "  git diff                       # review the changes"
+echo "  git add -A"
+echo "  git commit -m 'deps: apply Dependabot bumps; fix lint MissingPermission; drop stray files'"
+echo "  git push"
+
+
+################################################################################
 # FILE: .github/dependabot.yml
 ################################################################################
 
@@ -6249,14 +6346,14 @@ updates:
   Relative path:         .github/workflows/build_apk.yml
   Absolute path:         /home/kushal/src/kotlin/myweather/.github/workflows/build_apk.yml
   Size:                  2.9 KiB (3071 bytes)
-  Last modified:         2026-06-19 17:08:31.000000000 -0400
+  Last modified:         2026-06-20 13:21:00.607406664 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
-  Inode:                 16380297
+  Inode:                 16460674
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               988be657ec917d9fc0bbf27e0e59a89e4a627cedfc0d2c222a83b3611ac05d4d
-  Last git commit:       f74dc7e 2026-06-20 08:41:52 -0400 add dot github folder back
+  SHA-256:               f2945541a114e500b2169dd6abc0335b898dd3eb5eabc3934dfc55b8b30d462c
+  Last git commit:       2e37e2d 2026-06-20 13:21:36 -0400 add claude response
 
 --- CONTENT ---
 # Builds a signed release APK on every push to main and publishes it to a
@@ -6297,16 +6394,16 @@ jobs:
       contents: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v6
 
       - name: Decode signing keystore (if configured)
         env:
@@ -6326,7 +6423,7 @@ jobs:
         run: ./gradlew :app:assembleRelease --stacktrace
 
       - name: Upload APK artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: myweather-release-apk
           path: app/build/outputs/apk/release/*.apk
@@ -6336,7 +6433,7 @@ jobs:
         # Only from the canonical repo on a real push to main — never from forks
         # or pull requests (which also lack the signing secrets).
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'kusl/myweather' }}
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: rolling
           name: Rolling build
@@ -6357,14 +6454,14 @@ jobs:
   Relative path:         .github/workflows/ci.yml
   Absolute path:         /home/kushal/src/kotlin/myweather/.github/workflows/ci.yml
   Size:                  1.0 KiB (1121 bytes)
-  Last modified:         2026-06-19 17:08:31.000000000 -0400
+  Last modified:         2026-06-20 13:21:00.607676011 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
-  Inode:                 16380298
+  Inode:                 16460675
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               06da66f7fa5fcebae9507acd03b3e69f685b689772109beac757def2445e4d0e
-  Last git commit:       f74dc7e 2026-06-20 08:41:52 -0400 add dot github folder back
+  SHA-256:               e6d2c40dfae62b326d9af54419aacc964dff231e8069db054f773ea147438bb9
+  Last git commit:       2e37e2d 2026-06-20 13:21:36 -0400 add claude response
 
 --- CONTENT ---
 # Fast feedback on every push and pull request: compile, run JVM unit tests,
@@ -6390,23 +6487,23 @@ jobs:
     timeout-minutes: 30
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v6
 
       - name: Build, test, lint
         run: ./gradlew assembleDebug testDebugUnitTest lintDebug --stacktrace
 
       - name: Upload reports
         if: ${{ always() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: reports
           path: |
@@ -6424,14 +6521,14 @@ jobs:
   Relative path:         .github/workflows/instrumented-tests.yml
   Absolute path:         /home/kushal/src/kotlin/myweather/.github/workflows/instrumented-tests.yml
   Size:                  1.3 KiB (1382 bytes)
-  Last modified:         2026-06-19 17:08:31.000000000 -0400
+  Last modified:         2026-06-20 13:21:00.607874094 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
-  Inode:                 16380299
+  Inode:                 16460676
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               7d92490d728562236f5282ac361880083a824cb7c3117aee8a683abd5e77f50d
-  Last git commit:       f74dc7e 2026-06-20 08:41:52 -0400 add dot github folder back
+  SHA-256:               2a4da06dfaf506a61ce1de8a4203a2e989e45729282f4e325d2c1bde32d46387
+  Last git commit:       2e37e2d 2026-06-20 13:21:36 -0400 add claude response
 
 --- CONTENT ---
 # Opt-in instrumented (device) tests on an emulator. Manually triggered because
@@ -6455,16 +6552,16 @@ jobs:
     timeout-minutes: 45
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v6
 
       # KVM permissions so the emulator can use hardware acceleration.
       - name: Enable KVM
@@ -6499,7 +6596,7 @@ jobs:
   Hard links:            1
   MIME type:             text/plain
   SHA-256:               99cce97dc121658d0a775d32dbed5d851246f271133ca67f71538eb4ed0c581c
-  Last git commit:       47a6377 2026-06-20 12:21:46 -0400 cleanup
+  Last git commit:       6609126 2026-06-20 12:49:27 -0400 run dump
 
 --- CONTENT ---
 # Built application files
@@ -6578,14 +6675,14 @@ toolchainVersion=21
   Relative path:         gradle/libs.versions.toml
   Absolute path:         /home/kushal/src/kotlin/myweather/gradle/libs.versions.toml
   Size:                  5.9 KiB (6060 bytes)
-  Last modified:         2026-06-20 10:38:41.471757901 -0400
+  Last modified:         2026-06-20 13:21:00.604346697 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
-  Inode:                 16257613
+  Inode:                 16460673
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               e58849fcdae7bdb8a35b5447a512609b14904a77b8d6c31c14a880863c684523
-  Last git commit:       52402e9 2026-06-20 10:55:10 -0400 update gradle
+  SHA-256:               639914ffb018a22aab9ee3bda821c13314842a4fbd530536be775ab0365ff604
+  Last git commit:       2e37e2d 2026-06-20 13:21:36 -0400 add claude response
 
 --- CONTENT ---
 # ─────────────────────────────────────────────────────────────────────────────
@@ -6605,25 +6702,25 @@ ksp = "2.3.9"                  # KSP2 — decoupled versioning; 2.3.9 supports K
 
 # AndroidX / Jetpack -------------------------------------------------------------
 coreKtx = "1.15.0"
-lifecycle = "2.9.4"
-activityCompose = "1.10.1"
+lifecycle = "2.11.0"
+activityCompose = "1.13.0"
 composeBom = "2026.05.00"      # Pins all androidx.compose.* artifact versions together
-navigationCompose = "2.9.4"
+navigationCompose = "2.9.8"
 datastore = "1.1.7"
 room = "2.8.4"                 # Room 2.x (maintenance line); Kotlin-codegen via KSP
 
 # Kotlinx ------------------------------------------------------------------------
-coroutines = "1.10.2"
+coroutines = "1.11.0"
 serializationJson = "1.8.0"
 
 # Networking ---------------------------------------------------------------------
 retrofit = "3.0.0"             # Retrofit 3 (Kotlin-first; pulls OkHttp 4.12 transitively)
-okhttp = "4.12.0"
+okhttp = "5.4.0"
 
 # Testing ------------------------------------------------------------------------
 junit = "4.13.2"
-androidxJunit = "1.2.1"
-espresso = "3.6.1"
+androidxJunit = "1.3.0"
+espresso = "3.7.0"
 archCoreTesting = "2.2.0"
 
 [libraries]
@@ -7453,10 +7550,10 @@ include(":app")
 ################################################################################
 # DUMP SUMMARY
 ################################################################################
-  Files dumped   : 81
-  Total size     : 251.3 KiB (257340 bytes)
+  Files dumped   : 82
+  Total size     : 254.7 KiB (260821 bytes)
   Output file    : /home/kushal/src/kotlin/myweather/docs/llm/dump.txt
-  Completed at   : 2026-06-20T12:49:14-04:00
+  Completed at   : 2026-06-20T13:21:46-04:00
 ################################################################################
 # END OF DUMP
 ################################################################################
