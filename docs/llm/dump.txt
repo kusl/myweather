@@ -7,7 +7,7 @@
 
 DUMP METADATA
 ═════════════════════════════════════════════════════════════════════════════════
-  Generated at   : 2026-06-20T13:51:42-04:00
+  Generated at   : 2026-06-20T14:14:22-04:00
   Generator      : export.sh
   Host           : fedora
   User           : kushal
@@ -17,17 +17,17 @@ REPOSITORY METADATA
 ═════════════════════════════════════════════════════════════════════════════════
   Repository root: /home/kushal/src/kotlin/myweather
   Branch         : main
-  Commit (full)  : dd855fac483692bff5c5013882ee8a5ba2e7185c
-  Commit (short) : dd855fa
-  Commit date    : 2026-06-20 13:48:08 -0400
-  Commit message : update claude conversation
+  Commit (full)  : 62e1bcd9007615e0a2bfba8e955ce090a9be0bd7
+  Commit (short) : 62e1bcd
+  Commit date    : 2026-06-20 13:52:03 -0400
+  Commit message : run dump
   Remote origin  : git@github.com:kusl/myweather.git
   Files included : 81
   Excluded path  : docs/llm/
 
 GIT WORKING TREE STATUS (first 20 lines)
 ═════════════════════════════════════════════════════════════════════════════════
-  (clean — no uncommitted changes)
+ M docs/llm/vendor/claude-conversations.md
 
 ################################################################################
 # FILE: export.sh  [THIS SCRIPT — included for full context]
@@ -7459,7 +7459,7 @@ include(":app")
   Files dumped   : 81
   Total size     : 251.4 KiB (257469 bytes)
   Output file    : /home/kushal/src/kotlin/myweather/docs/llm/dump.txt
-  Completed at   : 2026-06-20T13:51:44-04:00
+  Completed at   : 2026-06-20T14:14:25-04:00
 ################################################################################
 # END OF DUMP
 ################################################################################
