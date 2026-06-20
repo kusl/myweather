@@ -24,7 +24,7 @@ room = "2.8.4"                 # Room 2.x (maintenance line); Kotlin-codegen via
 
 # Kotlinx ------------------------------------------------------------------------
 coroutines = "1.11.0"
-serializationJson = "1.8.0"
+serializationJson = "1.11.0"
 
 # Networking ---------------------------------------------------------------------
 retrofit = "3.0.0"             # Retrofit 3 (Kotlin-first; pulls OkHttp 4.12 transitively)
