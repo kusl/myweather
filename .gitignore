@@ -27,3 +27,4 @@ release.keystore
 .DS_Store
 Thumbs.db
 android.keystore.base64
+password.log
