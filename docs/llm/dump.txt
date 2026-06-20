@@ -7,7 +7,7 @@
 
 DUMP METADATA
 ═════════════════════════════════════════════════════════════════════════════════
-  Generated at   : 2026-06-20T12:23:12-04:00
+  Generated at   : 2026-06-20T12:49:11-04:00
   Generator      : export.sh
   Host           : fedora
   User           : kushal
@@ -17,17 +17,17 @@ REPOSITORY METADATA
 ═════════════════════════════════════════════════════════════════════════════════
   Repository root: /home/kushal/src/kotlin/myweather
   Branch         : main
-  Commit (full)  : 47a6377644ef95d867d9ce6a72bc2491368f4142
-  Commit (short) : 47a6377
-  Commit date    : 2026-06-20 12:21:46 -0400
-  Commit message : cleanup
+  Commit (full)  : 5a7667ef977bee9bcf2d789596d79cb5d2901b29
+  Commit (short) : 5a7667e
+  Commit date    : 2026-06-20 12:23:30 -0400
+  Commit message : run dump
   Remote origin  : git@github.com:kusl/myweather.git
   Files included : 81
   Excluded path  : docs/llm/
 
 GIT WORKING TREE STATUS (first 20 lines)
 ═════════════════════════════════════════════════════════════════════════════════
-  (clean — no uncommitted changes)
+ M .gitignore
 
 ################################################################################
 # FILE: export.sh  [THIS SCRIPT — included for full context]
@@ -6491,14 +6491,14 @@ jobs:
   File name:             .gitignore
   Relative path:         .gitignore
   Absolute path:         /home/kushal/src/kotlin/myweather/.gitignore
-  Size:                  387 B (387 bytes)
-  Last modified:         2026-06-20 12:21:28.114501857 -0400
+  Size:                  367 B (367 bytes)
+  Last modified:         2026-06-20 12:45:46.600297378 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 16287167
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               be5697f6bf2ee891e48f9a47c03c5c9992582a167f0192697a90bcd5cce9fd7c
+  SHA-256:               99cce97dc121658d0a775d32dbed5d851246f271133ca67f71538eb4ed0c581c
   Last git commit:       47a6377 2026-06-20 12:21:46 -0400 cleanup
 
 --- CONTENT ---
@@ -6531,8 +6531,8 @@ release.keystore
 .DS_Store
 Thumbs.db
 password.log
-myweather-release.keystore
-myweather-release.keystore.base64
+release.keystore
+release.keystore.base64
 
 
 ################################################################################
@@ -7454,9 +7454,9 @@ include(":app")
 # DUMP SUMMARY
 ################################################################################
   Files dumped   : 81
-  Total size     : 251.3 KiB (257360 bytes)
+  Total size     : 251.3 KiB (257340 bytes)
   Output file    : /home/kushal/src/kotlin/myweather/docs/llm/dump.txt
-  Completed at   : 2026-06-20T12:23:14-04:00
+  Completed at   : 2026-06-20T12:49:14-04:00
 ################################################################################
 # END OF DUMP
 ################################################################################
