@@ -1,4 +1,4 @@
-kushal@fedora:~/src/kotlin/myweather$ cd ~/src/kotlin/myweather/; time bash export.sh
+kushal@fedora:~/keys$ cd ~/src/kotlin/myweather/; time bash export.sh 
 ################################################################################
 #                                                                              #
 #   REPOSITORY CONTEXT DUMP                                                    #
@@ -8,7 +8,7 @@ kushal@fedora:~/src/kotlin/myweather$ cd ~/src/kotlin/myweather/; time bash expo
 
 DUMP METADATA
 ═════════════════════════════════════════════════════════════════════════════════
-  Generated at   : 2026-06-20T11:44:24-04:00
+  Generated at   : 2026-06-20T12:03:13-04:00
   Generator      : export.sh
   Host           : fedora
   User           : kushal
@@ -18,10 +18,10 @@ REPOSITORY METADATA
 ═════════════════════════════════════════════════════════════════════════════════
   Repository root: /home/kushal/src/kotlin/myweather
   Branch         : main
-  Commit (full)  : 396488772e96bd1ccfa8899be3a70f9d4ba97d88
-  Commit (short) : 3964887
-  Commit date    : 2026-06-20 11:44:14 -0400
-  Commit message : add output
+  Commit (full)  : fe5046b9da183ccc3dd12961bcdcd56611342424
+  Commit (short) : fe5046b
+  Commit date    : 2026-06-20 11:44:39 -0400
+  Commit message : run dump
   Remote origin  : git@github.com:kusl/myweather.git
   Files included : 81
   Excluded path  : docs/llm/
@@ -7454,12 +7454,12 @@ include(":app")
   Files dumped   : 81
   Total size     : 251.2 KiB (257286 bytes)
   Output file    : /home/kushal/src/kotlin/myweather/docs/llm/dump.txt
-  Completed at   : 2026-06-20T11:44:26-04:00
+  Completed at   : 2026-06-20T12:03:15-04:00
 ################################################################################
 # END OF DUMP
 ################################################################################
 
-real	0m2.481s
-user	0m1.193s
-sys	0m1.612s
+real	0m2.546s
+user	0m1.271s
+sys	0m1.519s
 kushal@fedora:~/src/kotlin/myweather$ 
