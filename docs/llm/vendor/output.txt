@@ -1,4 +1,4 @@
-kushal@fedora:~/src/kotlin/myweather$ cd ~/src/kotlin/myweather/; time bash export.sh 
+kushal@fedora:~/src/kotlin/myweather$ cd ~/src/kotlin/myweather/; time bash export.sh
 ################################################################################
 #                                                                              #
 #   REPOSITORY CONTEXT DUMP                                                    #
@@ -8,7 +8,7 @@ kushal@fedora:~/src/kotlin/myweather$ cd ~/src/kotlin/myweather/; time bash expo
 
 DUMP METADATA
 ═════════════════════════════════════════════════════════════════════════════════
-  Generated at   : 2026-06-20T12:10:53-04:00
+  Generated at   : 2026-06-20T12:23:12-04:00
   Generator      : export.sh
   Host           : fedora
   User           : kushal
@@ -18,10 +18,10 @@ REPOSITORY METADATA
 ═════════════════════════════════════════════════════════════════════════════════
   Repository root: /home/kushal/src/kotlin/myweather
   Branch         : main
-  Commit (full)  : 65cfee5e25728ffd1672c7b996a089d43934b7b3
-  Commit (short) : 65cfee5
-  Commit date    : 2026-06-20 12:10:17 -0400
-  Commit message : ignore password.log
+  Commit (full)  : 47a6377644ef95d867d9ce6a72bc2491368f4142
+  Commit (short) : 47a6377
+  Commit date    : 2026-06-20 12:21:46 -0400
+  Commit message : cleanup
   Remote origin  : git@github.com:kusl/myweather.git
   Files included : 81
   Excluded path  : docs/llm/
@@ -6492,15 +6492,15 @@ jobs:
   File name:             .gitignore
   Relative path:         .gitignore
   Absolute path:         /home/kushal/src/kotlin/myweather/.gitignore
-  Size:                  350 B (350 bytes)
-  Last modified:         2026-06-20 12:09:44.018623803 -0400
+  Size:                  387 B (387 bytes)
+  Last modified:         2026-06-20 12:21:28.114501857 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 16287167
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               b636d80c0175463aa397b61ba14dcee0dd388c452af48982a97adea9a2589471
-  Last git commit:       65cfee5 2026-06-20 12:10:17 -0400 ignore password.log
+  SHA-256:               be5697f6bf2ee891e48f9a47c03c5c9992582a167f0192697a90bcd5cce9fd7c
+  Last git commit:       47a6377 2026-06-20 12:21:46 -0400 cleanup
 
 --- CONTENT ---
 # Built application files
@@ -6531,8 +6531,9 @@ release.keystore
 # OS noise
 .DS_Store
 Thumbs.db
-android.keystore.base64
 password.log
+myweather-release.keystore
+myweather-release.keystore.base64
 
 
 ################################################################################
@@ -7454,14 +7455,14 @@ include(":app")
 # DUMP SUMMARY
 ################################################################################
   Files dumped   : 81
-  Total size     : 251.2 KiB (257323 bytes)
+  Total size     : 251.3 KiB (257360 bytes)
   Output file    : /home/kushal/src/kotlin/myweather/docs/llm/dump.txt
-  Completed at   : 2026-06-20T12:10:56-04:00
+  Completed at   : 2026-06-20T12:23:14-04:00
 ################################################################################
 # END OF DUMP
 ################################################################################
 
-real	0m2.518s
-user	0m1.271s
-sys	0m1.528s
+real	0m2.536s
+user	0m1.298s
+sys	0m1.504s
 kushal@fedora:~/src/kotlin/myweather$ 
