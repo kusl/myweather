@@ -7987,4 +7987,8 @@ private fun Response<*>.etag(): String? = headers()["ETag"]
 real	0m2.521s
 user	0m1.187s
 sys	0m1.647s
+kushal@fedora:~/src/kotlin/myweather$ git rm app-build.gradle.kts libs.versions.toml WeatherRepositoryImpl.kt
+rm 'WeatherRepositoryImpl.kt'
+rm 'app-build.gradle.kts'
+rm 'libs.versions.toml'
 kushal@fedora:~/src/kotlin/myweather$ 
