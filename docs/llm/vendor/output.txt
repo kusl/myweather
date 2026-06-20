@@ -8,7 +8,7 @@ kushal@fedora:~/src/kotlin/myweather$ cd ~/src/kotlin/myweather/; time bash expo
 
 DUMP METADATA
 ═════════════════════════════════════════════════════════════════════════════════
-  Generated at   : 2026-06-20T10:55:16-04:00
+  Generated at   : 2026-06-20T10:58:34-04:00
   Generator      : export.sh
   Host           : fedora
   User           : kushal
@@ -18,10 +18,10 @@ REPOSITORY METADATA
 ═════════════════════════════════════════════════════════════════════════════════
   Repository root: /home/kushal/src/kotlin/myweather
   Branch         : main
-  Commit (full)  : 52402e9ec217d14eb910a01dc480489d501ef4e1
-  Commit (short) : 52402e9
-  Commit date    : 2026-06-20 10:55:10 -0400
-  Commit message : update gradle
+  Commit (full)  : e6a587bfa90facda592cf1809896f679be94f594
+  Commit (short) : e6a587b
+  Commit date    : 2026-06-20 10:58:19 -0400
+  Commit message : update manually
   Remote origin  : git@github.com:kusl/myweather.git
   Files included : 82
   Excluded path  : docs/llm/
@@ -6841,21 +6841,21 @@ android.newDsl=false
   File name:             gradlew
   Relative path:         gradlew
   Absolute path:         /home/kushal/src/kotlin/myweather/gradlew
-  Size:                  8.5 KiB (8774 bytes)
-  Last modified:         2026-06-19 16:48:15.000000000 -0400
+  Size:                  8.4 KiB (8654 bytes)
+  Last modified:         2026-06-20 10:56:55.640433991 -0400
   Permissions:           -rwxr-xr-x
   Owner:                 kushal:kushal
   Inode:                 16257490
   Hard links:            1
   MIME type:             text/x-shellscript
-  SHA-256:               c76f16038b4e70b84ed0b3b9e08e82a8ecaf66ec0efdfdecdece92520fa3cecb
-  Last git commit:       0386d8e 2026-06-20 08:06:03 -0400 move one folder up
+  SHA-256:               ab5c0cad16305af2e619c159c1f58dd68d07fab9c11e36701e109c0277407f7a
+  Last git commit:       6bf7cab 2026-06-20 10:58:03 -0400 update with android studio
 
 --- CONTENT ---
 #!/bin/sh
 
 #
-# Copyright © 2015-2021 the original authors.
+# Copyright © 2015 the original authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -6911,7 +6911,7 @@ android.newDsl=false
 #       Darwin, MinGW, and NonStop.
 #
 #   (3) This script is generated from the Groovy template
-#       https://github.com/gradle/gradle/blob/HEAD/platforms/jvm/plugins-application/src/main/resources/org/gradle/api/internal/plugins/unixStartScript.txt
+#       https://github.com/gradle/gradle/blob/3d91ce3b8caaf77ad09f381f43615b715b53f72c/platforms/jvm/plugins-application/src/main/resources/org/gradle/api/internal/plugins/unixStartScript.txt
 #       within the Gradle project.
 #
 #       You can find Gradle at https://github.com/gradle/gradle/.
@@ -6968,7 +6968,6 @@ case "$( uname )" in                #(
   NONSTOP* )        nonstop=true ;;
 esac
 
-CLASSPATH=$APP_HOME/gradle/wrapper/gradle-wrapper.jar
 
 
 # Determine the Java command to use to start the JVM.
@@ -7026,7 +7025,6 @@ fi
 # For Cygwin or MSYS, switch paths to Windows format before running java
 if "$cygwin" || "$msys" ; then
     APP_HOME=$( cygpath --path --mixed "$APP_HOME" )
-    CLASSPATH=$( cygpath --path --mixed "$CLASSPATH" )
 
     JAVACMD=$( cygpath --unix "$JAVACMD" )
 
@@ -7056,7 +7054,7 @@ fi
 
 
 # Add default JVM options here. You can also use JAVA_OPTS and GRADLE_OPTS to pass JVM options to this script.
-DEFAULT_JVM_OPTS='-Dfile.encoding=UTF-8 "-Xmx64m" "-Xms64m"'
+DEFAULT_JVM_OPTS='"-Xmx64m" "-Xms64m"'
 
 # Collect all arguments for the java command:
 #   * DEFAULT_JVM_OPTS, JAVA_OPTS, and optsEnvironmentVar are not allowed to contain shell fragments,
@@ -7066,8 +7064,7 @@ DEFAULT_JVM_OPTS='-Dfile.encoding=UTF-8 "-Xmx64m" "-Xms64m"'
 
 set -- \
         "-Dorg.gradle.appname=$APP_BASE_NAME" \
-        -classpath "$CLASSPATH" \
-        org.gradle.wrapper.GradleWrapperMain \
+        -jar "$APP_HOME/gradle/wrapper/gradle-wrapper.jar" \
         "$@"
 
 # Stop when "xargs" is not available.
@@ -7113,15 +7110,15 @@ exec "$JAVACMD" "$@"
   File name:             gradlew.bat
   Relative path:         gradlew.bat
   Absolute path:         /home/kushal/src/kotlin/myweather/gradlew.bat
-  Size:                  2.8 KiB (2894 bytes)
-  Last modified:         2026-06-19 16:48:15.000000000 -0400
+  Size:                  2.7 KiB (2846 bytes)
+  Last modified:         2026-06-20 10:56:55.661434133 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 16257614
   Hard links:            1
   MIME type:             text/x-msdos-batch
-  SHA-256:               0f3ed8f03b50934cb8c48b15a470d5c20a30a5385825e48b55bcc8ea3d8f8e18
-  Last git commit:       0386d8e 2026-06-20 08:06:03 -0400 move one folder up
+  SHA-256:               475c4f08cd57cf2faa819e7f36d72aa93f0ad646ea23a8f7fa3ef54dee1cbc52
+  Last git commit:       6bf7cab 2026-06-20 10:58:03 -0400 update with android studio
 
 --- CONTENT ---
 @rem
@@ -7149,8 +7146,8 @@ exec "$JAVACMD" "$@"
 @rem
 @rem ##########################################################################
 
-@rem Set local scope for the variables with windows NT shell
-if "%OS%"=="Windows_NT" setlocal
+@rem Set local scope for the variables, and ensure extensions are enabled
+setlocal EnableExtensions
 
 set DIRNAME=%~dp0
 if "%DIRNAME%"=="" set DIRNAME=.
@@ -7162,7 +7159,7 @@ set APP_HOME=%DIRNAME%
 for %%i in ("%APP_HOME%") do set APP_HOME=%%~fi
 
 @rem Add default JVM options here. You can also use JAVA_OPTS and GRADLE_OPTS to pass JVM options to this script.
-set DEFAULT_JVM_OPTS=-Dfile.encoding=UTF-8 "-Xmx64m" "-Xms64m"
+set DEFAULT_JVM_OPTS="-Xmx64m" "-Xms64m"
 
 @rem Find java.exe
 if defined JAVA_HOME goto findJavaFromJavaHome
@@ -7177,7 +7174,7 @@ echo. 1>&2
 echo Please set the JAVA_HOME variable in your environment to match the 1>&2
 echo location of your Java installation. 1>&2
 
-goto fail
+"%COMSPEC%" /c exit 1
 
 :findJavaFromJavaHome
 set JAVA_HOME=%JAVA_HOME:"=%
@@ -7191,33 +7188,21 @@ echo. 1>&2
 echo Please set the JAVA_HOME variable in your environment to match the 1>&2
 echo location of your Java installation. 1>&2
 
-goto fail
+"%COMSPEC%" /c exit 1
 
 :execute
 @rem Setup the command line
 
-set CLASSPATH=%APP_HOME%\gradle\wrapper\gradle-wrapper.jar
 
 
 @rem Execute Gradle
-"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %GRADLE_OPTS% "-Dorg.gradle.appname=%APP_BASE_NAME%" -classpath "%CLASSPATH%" org.gradle.wrapper.GradleWrapperMain %*
+@rem endlocal doesn't take effect until after the line is parsed and variables are expanded
+@rem which allows us to clear the local environment before executing the java command
+endlocal & "%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %GRADLE_OPTS% "-Dorg.gradle.appname=%APP_BASE_NAME%" -jar "%APP_HOME%\gradle\wrapper\gradle-wrapper.jar" %* & call :exitWithErrorLevel
 
-:end
-@rem End local scope for the variables with windows NT shell
-if %ERRORLEVEL% equ 0 goto mainEnd
-
-:fail
-rem Set variable GRADLE_EXIT_CONSOLE if you need the _script_ return code instead of
-rem the _cmd.exe /c_ return code!
-set EXIT_CODE=%ERRORLEVEL%
-if %EXIT_CODE% equ 0 set EXIT_CODE=1
-if not ""=="%GRADLE_EXIT_CONSOLE%" exit %EXIT_CODE%
-exit /b %EXIT_CODE%
-
-:mainEnd
-if "%OS%"=="Windows_NT" endlocal
-
-:omega
+:exitWithErrorLevel
+@rem Use "%COMSPEC%" /c exit to allow operators to work properly in scripts
+"%COMSPEC%" /c exit %ERRORLEVEL%
 
 
 ################################################################################
@@ -7228,18 +7213,18 @@ if "%OS%"=="Windows_NT" endlocal
   File name:             gradle-wrapper.jar
   Relative path:         gradle/wrapper/gradle-wrapper.jar
   Absolute path:         /home/kushal/src/kotlin/myweather/gradle/wrapper/gradle-wrapper.jar
-  Size:                  42.6 KiB (43705 bytes)
-  Last modified:         2026-06-19 16:48:15.000000000 -0400
+  Size:                  47.3 KiB (48462 bytes)
+  Last modified:         2026-06-20 10:56:55.521375254 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 16257611
   Hard links:            1
   MIME type:             application/zip
-  SHA-256:               81a82aaea5abcc8ff68b3dfcb58b3c3c429378efd98e7433460610fecd7ae45f
-  Last git commit:       0386d8e 2026-06-20 08:06:03 -0400 move one folder up
+  SHA-256:               497c8c2a7e5031f6aa847f88104aa80a93532ec32ee17bdb8d1d2f67a194a9c7
+  Last git commit:       6bf7cab 2026-06-20 10:58:03 -0400 update with android studio
 
 --- CONTENT ---
-[Binary file — content omitted. Size: 42.6 KiB, SHA-256: 81a82aaea5abcc8ff68b3dfcb58b3c3c429378efd98e7433460610fecd7ae45f]
+[Binary file — content omitted. Size: 47.3 KiB, SHA-256: 497c8c2a7e5031f6aa847f88104aa80a93532ec32ee17bdb8d1d2f67a194a9c7]
 
 ################################################################################
 # FILE: gradle/wrapper/gradle-wrapper.properties
@@ -7249,21 +7234,23 @@ if "%OS%"=="Windows_NT" endlocal
   File name:             gradle-wrapper.properties
   Relative path:         gradle/wrapper/gradle-wrapper.properties
   Absolute path:         /home/kushal/src/kotlin/myweather/gradle/wrapper/gradle-wrapper.properties
-  Size:                  252 B (252 bytes)
-  Last modified:         2026-06-20 10:38:41.490233659 -0400
+  Size:                  281 B (281 bytes)
+  Last modified:         2026-06-20 10:58:10.570067399 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 16257612
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               70fa201501995e6f45c0c475def71093f8115849344c48322ca997cfddba8534
-  Last git commit:       52402e9 2026-06-20 10:55:10 -0400 update gradle
+  SHA-256:               e74d4f107d2feab989b9a041a02e2d2b85567ff48415c9c7add5ecc19abd19f9
+  Last git commit:       e6a587b 2026-06-20 10:58:19 -0400 update manually
 
 --- CONTENT ---
 distributionBase=GRADLE_USER_HOME
 distributionPath=wrapper/dists
-distributionUrl=https\://services.gradle.org/distributions/gradle-9.4.1-bin.zip
+distributionUrl=https\://services.gradle.org/distributions/gradle-9.6.0-bin.zip
 networkTimeout=10000
+retries=0
+retryBackOffMs=500
 validateDistributionUrl=true
 zipStoreBase=GRADLE_USER_HOME
 zipStorePath=wrapper/dists
@@ -7952,14 +7939,14 @@ private fun Response<*>.etag(): String? = headers()["ETag"]
 # DUMP SUMMARY
 ################################################################################
   Files dumped   : 82
-  Total size     : 265.9 KiB (272291 bytes)
+  Total size     : 270.4 KiB (276909 bytes)
   Output file    : /home/kushal/src/kotlin/myweather/docs/llm/dump.txt
-  Completed at   : 2026-06-20T10:55:19-04:00
+  Completed at   : 2026-06-20T10:58:36-04:00
 ################################################################################
 # END OF DUMP
 ################################################################################
 
-real	0m2.492s
-user	0m1.209s
-sys	0m1.584s
+real	0m2.564s
+user	0m1.256s
+sys	0m1.609s
 kushal@fedora:~/src/kotlin/myweather$ 
