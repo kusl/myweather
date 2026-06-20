@@ -7,7 +7,7 @@
 
 DUMP METADATA
 ═════════════════════════════════════════════════════════════════════════════════
-  Generated at   : 2026-06-20T10:28:51-04:00
+  Generated at   : 2026-06-20T10:55:16-04:00
   Generator      : export.sh
   Host           : fedora
   User           : kushal
@@ -17,10 +17,10 @@ REPOSITORY METADATA
 ═════════════════════════════════════════════════════════════════════════════════
   Repository root: /home/kushal/src/kotlin/myweather
   Branch         : main
-  Commit (full)  : d7e4f72f90009cf58eb7dd146cb455fdaadc2b82
-  Commit (short) : d7e4f72
-  Commit date    : 2026-06-20 10:28:07 -0400
-  Commit message : use claude
+  Commit (full)  : 52402e9ec217d14eb910a01dc480489d501ef4e1
+  Commit (short) : 52402e9
+  Commit date    : 2026-06-20 10:55:10 -0400
+  Commit message : update gradle
   Remote origin  : git@github.com:kusl/myweather.git
   Files included : 82
   Excluded path  : docs/llm/
@@ -6680,15 +6680,15 @@ Thumbs.db
   File name:             libs.versions.toml
   Relative path:         gradle/libs.versions.toml
   Absolute path:         /home/kushal/src/kotlin/myweather/gradle/libs.versions.toml
-  Size:                  5.9 KiB (6061 bytes)
-  Last modified:         2026-06-19 16:48:46.000000000 -0400
+  Size:                  5.9 KiB (6060 bytes)
+  Last modified:         2026-06-20 10:38:41.471757901 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 16257613
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               c90d3d210f07a21d7cde66d0fc98b821a39efe2fde2e00b5447938865651d589
-  Last git commit:       0386d8e 2026-06-20 08:06:03 -0400 move one folder up
+  SHA-256:               e58849fcdae7bdb8a35b5447a512609b14904a77b8d6c31c14a880863c684523
+  Last git commit:       52402e9 2026-06-20 10:55:10 -0400 update gradle
 
 --- CONTENT ---
 # ─────────────────────────────────────────────────────────────────────────────
@@ -6702,7 +6702,7 @@ Thumbs.db
 # ─────────────────────────────────────────────────────────────────────────────
 [versions]
 # Build toolchain ----------------------------------------------------------------
-agp = "8.13.0"                 # Android Gradle Plugin (8.x line; supports compileSdk 36)
+agp = "9.2.1"                 # Android Gradle Plugin (8.x line; supports compileSdk 36)
 kotlin = "2.4.0"               # Kotlin (K2). Compose-compiler & serialization plugins track this exact version.
 ksp = "2.3.9"                  # KSP2 — decoupled versioning; 2.3.9 supports Kotlin 2.2+ (incl. 2.4.0)
 
@@ -6791,15 +6791,15 @@ ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
   File name:             gradle.properties
   Relative path:         gradle.properties
   Absolute path:         /home/kushal/src/kotlin/myweather/gradle.properties
-  Size:                  625 B (625 bytes)
-  Last modified:         2026-06-19 16:49:01.000000000 -0400
+  Size:                  1018 B (1018 bytes)
+  Last modified:         2026-06-20 10:38:41.493726281 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 16257608
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               4971a93d4035e48b2a9bb88bd15eea21d6cc33afbbc040eef09c662f956e9428
-  Last git commit:       0386d8e 2026-06-20 08:06:03 -0400 move one folder up
+  SHA-256:               4171c5d887cf27d2d4beb9a408d98df4c658003cea94e89046f6b64013218f19
+  Last git commit:       52402e9 2026-06-20 10:55:10 -0400 update gradle
 
 --- CONTENT ---
 # Project-wide Gradle settings.
@@ -6820,6 +6820,16 @@ kotlin.code.style=official
 
 # Only generate the resource symbols (R class) that are used — smaller, faster.
 android.nonTransitiveRClass=true
+android.defaults.buildfeatures.resvalues=true
+android.sdk.defaultTargetSdkToCompileSdkIfUnset=false
+android.enableAppCompileTimeRClass=false
+android.usesSdkInManifest.disallowed=false
+android.uniquePackageNames=false
+android.dependency.useConstraints=true
+android.r8.strictFullModeForKeepRules=false
+android.r8.optimizedResourceShrinking=false
+android.builtInKotlin=false
+android.newDsl=false
 
 
 ################################################################################
@@ -7238,20 +7248,20 @@ if "%OS%"=="Windows_NT" endlocal
   File name:             gradle-wrapper.properties
   Relative path:         gradle/wrapper/gradle-wrapper.properties
   Absolute path:         /home/kushal/src/kotlin/myweather/gradle/wrapper/gradle-wrapper.properties
-  Size:                  251 B (251 bytes)
-  Last modified:         2026-06-19 16:48:46.000000000 -0400
+  Size:                  252 B (252 bytes)
+  Last modified:         2026-06-20 10:38:41.490233659 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 16257612
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               cdab1ffb439219b1db125e3c99a86cf2424f8762b9b3faa404ed061e3635ecde
-  Last git commit:       0386d8e 2026-06-20 08:06:03 -0400 move one folder up
+  SHA-256:               70fa201501995e6f45c0c475def71093f8115849344c48322ca997cfddba8534
+  Last git commit:       52402e9 2026-06-20 10:55:10 -0400 update gradle
 
 --- CONTENT ---
 distributionBase=GRADLE_USER_HOME
 distributionPath=wrapper/dists
-distributionUrl=https\://services.gradle.org/distributions/gradle-8.13-bin.zip
+distributionUrl=https\://services.gradle.org/distributions/gradle-9.4.1-bin.zip
 networkTimeout=10000
 validateDistributionUrl=true
 zipStoreBase=GRADLE_USER_HOME
@@ -7941,9 +7951,9 @@ private fun Response<*>.etag(): String? = headers()["ETag"]
 # DUMP SUMMARY
 ################################################################################
   Files dumped   : 82
-  Total size     : 265.5 KiB (271898 bytes)
+  Total size     : 265.9 KiB (272291 bytes)
   Output file    : /home/kushal/src/kotlin/myweather/docs/llm/dump.txt
-  Completed at   : 2026-06-20T10:28:53-04:00
+  Completed at   : 2026-06-20T10:55:19-04:00
 ################################################################################
 # END OF DUMP
 ################################################################################
