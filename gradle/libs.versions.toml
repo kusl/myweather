@@ -14,7 +14,7 @@ kotlin = "2.4.0"               # Kotlin (K2). Compose-compiler & serialization p
 ksp = "2.3.9"                  # KSP2 — decoupled versioning; 2.3.9 supports Kotlin 2.2+ (incl. 2.4.0)
 
 # AndroidX / Jetpack -------------------------------------------------------------
-coreKtx = "1.15.0"
+coreKtx = "1.19.0"
 lifecycle = "2.11.0"
 activityCompose = "1.13.0"
 composeBom = "2026.05.00"      # Pins all androidx.compose.* artifact versions together
