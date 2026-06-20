@@ -8,7 +8,7 @@ kushal@fedora:~/src/kotlin/myweather$ cd ~/src/kotlin/myweather/; time bash expo
 
 DUMP METADATA
 ═════════════════════════════════════════════════════════════════════════════════
-  Generated at   : 2026-06-20T11:22:54-04:00
+  Generated at   : 2026-06-20T11:44:24-04:00
   Generator      : export.sh
   Host           : fedora
   User           : kushal
@@ -18,12 +18,12 @@ REPOSITORY METADATA
 ═════════════════════════════════════════════════════════════════════════════════
   Repository root: /home/kushal/src/kotlin/myweather
   Branch         : main
-  Commit (full)  : 729a9b848f482cb904e84525de2a76dab91800a4
-  Commit (short) : 729a9b8
-  Commit date    : 2026-06-20 11:22:40 -0400
-  Commit message : use gradle suggestion by android studio
+  Commit (full)  : 396488772e96bd1ccfa8899be3a70f9d4ba97d88
+  Commit (short) : 3964887
+  Commit date    : 2026-06-20 11:44:14 -0400
+  Commit message : add output
   Remote origin  : git@github.com:kusl/myweather.git
-  Files included : 83
+  Files included : 81
   Excluded path  : docs/llm/
 
 GIT WORKING TREE STATUS (first 20 lines)
@@ -396,7 +396,7 @@ FOOTER
 mv -f "$TMP_FILE" "$OUTPUT_FILE"
 
 ################################################################################
-# FILE TREE  (all 83 included files)
+# FILE TREE  (all 81 included files)
 ################################################################################
 .
 .
@@ -489,6 +489,8 @@ mv -f "$TMP_FILE" "$OUTPUT_FILE"
 │       │       │   ├── ic_launcher_background.xml
 │       │       │   ├── strings.xml
 │       │       │   └── themes.xml
+│       │       ├── values-night
+│       │       │   └── themes.xml
 │       │       └── xml
 │       │           ├── backup_rules.xml
 │       │           └── data_extraction_rules.xml
@@ -509,7 +511,6 @@ mv -f "$TMP_FILE" "$OUTPUT_FILE"
 │                           └── ui
 │                               └── dashboard
 │                                   └── DashboardViewModelTest.kt
-├── app-build.gradle.kts
 ├── build.gradle.kts
 ├── docs
 │   ├── ARCHITECTURE.md
@@ -532,213 +533,8 @@ mv -f "$TMP_FILE" "$OUTPUT_FILE"
 ├── gradle.properties
 ├── gradlew
 ├── gradlew.bat
-├── libs.versions.toml
 ├── README.md
-├── settings.gradle.kts
-└── WeatherRepositoryImpl.kt
-
-
-################################################################################
-# FILE: app-build.gradle.kts
-################################################################################
-
---- METADATA ---
-  File name:             app-build.gradle.kts
-  Relative path:         app-build.gradle.kts
-  Absolute path:         /home/kushal/src/kotlin/myweather/app-build.gradle.kts
-  Size:                  6.1 KiB (6348 bytes)
-  Last modified:         2026-06-20 11:19:10.000000000 -0400
-  Permissions:           -rw-------
-  Owner:                 kushal:kushal
-  Inode:                 16257479
-  Hard links:            1
-  MIME type:             text/plain
-  SHA-256:               76081d543d1649333f141d826620447ed8600a25a5ae31a3213a84d280aa71f8
-  Last git commit:       5465c89 2026-06-20 07:24:09 -0400 initialize repository
-
---- CONTENT ---
-import com.android.build.api.dsl.ApkSigningConfig
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import java.util.Properties
-
-plugins {
-    alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.compose)
-    alias(libs.plugins.kotlin.serialization)
-    alias(libs.plugins.ksp)
-}
-
-/**
- * Resolve release-signing material from (in priority order):
- *   1. Environment variables  (used by CI — see .github/workflows/build_apk.yml)
- *   2. keystore.properties     (used for local release builds; git-ignored)
- *
- * If neither is present we return null and the release variant falls back to the
- * debug signing config, so the project still assembles for forks/contributors
- * who don't have the secrets. Nothing here ever commits a secret.
- */
-fun resolveReleaseSigning(): Map<String, String>? {
-    val env = System.getenv()
-    if (env["MYWEATHER_KEYSTORE_PATH"]?.isNotBlank() == true) {
-        return mapOf(
-            "storeFile" to env.getValue("MYWEATHER_KEYSTORE_PATH"),
-            "storePassword" to (env["MYWEATHER_KEYSTORE_PASSWORD"] ?: ""),
-            "keyAlias" to (env["MYWEATHER_KEY_ALIAS"] ?: ""),
-            "keyPassword" to (env["MYWEATHER_KEY_PASSWORD"] ?: ""),
-        )
-    }
-    val propsFile = rootProject.file("keystore.properties")
-    if (propsFile.exists()) {
-        val props = Properties().apply { propsFile.inputStream().use { load(it) } }
-        val storeFile = props.getProperty("storeFile").orEmpty()
-        if (storeFile.isNotBlank()) {
-            return mapOf(
-                "storeFile" to storeFile,
-                "storePassword" to props.getProperty("storePassword", ""),
-                "keyAlias" to props.getProperty("keyAlias", ""),
-                "keyPassword" to props.getProperty("keyPassword", ""),
-            )
-        }
-    }
-    return null
-}
-
-android {
-    namespace = "com.kusl.myweather"
-
-    // Compile against API 36 (latest available to AGP 8.13) while targeting the
-    // requested API 35 and supporting Android 14 (API 34) as the floor.
-    compileSdk = 36
-
-    defaultConfig {
-        applicationId = "com.kusl.myweather"
-        minSdk = 34
-        targetSdk = 35
-        versionCode = 1
-        versionName = "1.0.0"
-
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        vectorDrawables { useSupportLibrary = true }
-    }
-
-    val releaseSigning = resolveReleaseSigning()
-    signingConfigs {
-        if (releaseSigning != null) {
-            create("release") {
-                storeFile = file(releaseSigning.getValue("storeFile"))
-                storePassword = releaseSigning["storePassword"]
-                keyAlias = releaseSigning["keyAlias"]
-                keyPassword = releaseSigning["keyPassword"]
-                enableV1Signing = true
-                enableV2Signing = true
-            }
-        }
-    }
-
-    buildTypes {
-        debug {
-            applicationIdSuffix = ".debug"
-            isMinifyEnabled = false
-        }
-        release {
-            isMinifyEnabled = true
-            isShrinkResources = true
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro",
-            )
-            // Sign with the real release key when available; otherwise fall back
-            // to the debug key so `assembleRelease` never fails for lack of secrets.
-            signingConfig = signingConfigs.findByName("release")
-                ?: signingConfigs.getByName("debug")
-        }
-    }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
-
-    buildFeatures {
-        compose = true
-        buildConfig = true
-    }
-
-    packaging {
-        resources {
-            excludes += "/META-INF/{AL2.0,LGPL2.1}"
-        }
-    }
-
-    testOptions {
-        unitTests {
-            // Let JVM unit tests touch android.jar stubs (e.g. android.util.Log)
-            // without throwing "not mocked" — they no-op and return defaults.
-            isReturnDefaultValues = true
-        }
-    }
-
-    // Room schema export — handy for migration diffing and committed under app/schemas.
-    ksp { arg("room.schemaLocation", "$projectDir/schemas") }
-}
-
-kotlin {
-    compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_17)
-    }
-}
-
-dependencies {
-    // Core + lifecycle
-    implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.lifecycle.runtime.ktx)
-    implementation(libs.androidx.lifecycle.runtime.compose)
-    implementation(libs.androidx.lifecycle.viewmodel.compose)
-    implementation(libs.androidx.activity.compose)
-
-    // Compose (BOM-managed)
-    val composeBom = platform(libs.androidx.compose.bom)
-    implementation(composeBom)
-    androidTestImplementation(composeBom)
-    implementation(libs.androidx.ui)
-    implementation(libs.androidx.ui.graphics)
-    implementation(libs.androidx.ui.tooling.preview)
-    implementation(libs.androidx.material3)
-    implementation(libs.androidx.navigation.compose)
-    debugImplementation(libs.androidx.ui.tooling)
-    debugImplementation(libs.androidx.ui.test.manifest)
-
-    // Coroutines
-    implementation(libs.kotlinx.coroutines.core)
-    implementation(libs.kotlinx.coroutines.android)
-
-    // Settings storage
-    implementation(libs.androidx.datastore.preferences)
-
-    // Room (KSP is the only annotation processor in the project)
-    implementation(libs.androidx.room.runtime)
-    implementation(libs.androidx.room.ktx)
-    ksp(libs.androidx.room.compiler)
-
-    // Networking: Retrofit + OkHttp + kotlinx.serialization
-    implementation(libs.retrofit)
-    implementation(libs.retrofit.converter.kotlinx.serialization)
-    implementation(libs.okhttp)
-    implementation(libs.okhttp.logging.interceptor)
-    implementation(libs.kotlinx.serialization.json)
-
-    // Unit tests (JVM — run in CI without an emulator)
-    testImplementation(libs.junit)
-    testImplementation(libs.kotlinx.coroutines.test)
-
-    // Instrumented tests (device/emulator)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(libs.androidx.arch.core.testing)
-    androidTestImplementation(libs.androidx.room.testing)
-    androidTestImplementation(libs.androidx.ui.test.junit4)
-}
+└── settings.gradle.kts
 
 
 ################################################################################
@@ -749,15 +545,15 @@ dependencies {
   File name:             build.gradle.kts
   Relative path:         app/build.gradle.kts
   Absolute path:         /home/kushal/src/kotlin/myweather/app/build.gradle.kts
-  Size:                  6.1 KiB (6348 bytes)
-  Last modified:         2026-06-19 17:03:45.000000000 -0400
+  Size:                  6.9 KiB (7081 bytes)
+  Last modified:         2026-06-20 11:42:55.904660465 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 16257498
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               76081d543d1649333f141d826620447ed8600a25a5ae31a3213a84d280aa71f8
-  Last git commit:       0386d8e 2026-06-20 08:06:03 -0400 move one folder up
+  SHA-256:               d101d3bb1bfcb788287e05a97e45b495388baabbd4305a42f0c13a9b0774e4bb
+  Last git commit:       05a8ba5 2026-06-20 11:43:48 -0400 add claude changes
 
 --- CONTENT ---
 import com.android.build.api.dsl.ApkSigningConfig
@@ -808,6 +604,11 @@ fun resolveReleaseSigning(): Map<String, String>? {
 }
 
 android {
+    // Code package for the generated R and BuildConfig classes. This is internal
+    // and never user-visible, so it stays as-is: every `import com.kusl.myweather.*`
+    // (including R and BuildConfig) and the ProGuard keep-rules depend on it.
+    // It is intentionally NOT the same as applicationId below — AGP allows them to
+    // differ, and renaming it would mean rewriting every package declaration.
     namespace = "com.kusl.myweather"
 
     // Compile against API 36 (latest available to AGP 8.13) while targeting the
@@ -815,7 +616,11 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.kusl.myweather"
+        // Installable / store-facing application identity. Deliberately distinct
+        // from `namespace` above: the app is published under this GitHub-org-style
+        // id. Debug builds append ".debug" (see below) so a debug and a release
+        // build can be installed side by side on the same device.
+        applicationId = "com.github.kusl.myweather"
         minSdk = 34
         targetSdk = 35
         versionCode = 1
@@ -1004,15 +809,15 @@ dependencies {
   File name:             README.md
   Relative path:         app/README.md
   Absolute path:         /home/kushal/src/kotlin/myweather/app/README.md
-  Size:                  1.7 KiB (1806 bytes)
-  Last modified:         2026-06-20 04:58:35.000000000 -0400
+  Size:                  2.3 KiB (2385 bytes)
+  Last modified:         2026-06-20 11:43:39.770651749 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 16257604
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               418b0b4441a924c63375887c2b6205431c6107eee1bd9bdea6fdcc9708036b78
-  Last git commit:       0386d8e 2026-06-20 08:06:03 -0400 move one folder up
+  SHA-256:               976d32bb9fe978871d1dcf18083cedd09e051fc21f4317a774de1ff8e7e89ea2
+  Last git commit:       05a8ba5 2026-06-20 11:43:48 -0400 add claude changes
 
 --- CONTENT ---
 # `:app` module
@@ -1043,12 +848,20 @@ by package structure and interface seams rather than by module boundaries.
 ## Build specifics
 
 - `compileSdk 36`, `minSdk 34`, `targetSdk 35`, JDK 17.
+- Application id `com.github.kusl.myweather` (`…debug` for debug builds). The
+  Kotlin namespace is `com.kusl.myweather` and is intentionally separate from the
+  application id — they are allowed to differ and serve different purposes.
 - Compose via the BOM; KSP only for Room.
 - `assembleRelease` reads signing material from env vars or `keystore.properties`,
   falling back to debug signing when neither is present (see the root README).
 - `testOptions.unitTests.isReturnDefaultValues = true` so JVM unit tests can
   touch `android.util.Log` stubs without throwing.
-
+- The XML window theme (`res/values/themes.xml` + `res/values-night/themes.xml`)
+  is a thin framework (`android:Theme.Material*`) base — there is no
+  AppCompat/Material-Components library on the classpath — and only sets the
+  pre-Compose window background and system-bar colors. All real theming is the
+  Compose `MaterialTheme`.
+  
 
 ################################################################################
 # FILE: app/src/androidTest/java/com/kusl/myweather/data/local/WeatherDaoTest.kt
@@ -4616,6 +4429,42 @@ val MyWeatherTypography = Typography()
 
 
 ################################################################################
+# FILE: app/src/main/res/values-night/themes.xml
+################################################################################
+
+--- METADATA ---
+  File name:             themes.xml
+  Relative path:         app/src/main/res/values-night/themes.xml
+  Absolute path:         /home/kushal/src/kotlin/myweather/app/src/main/res/values-night/themes.xml
+  Size:                  829 B (829 bytes)
+  Last modified:         2026-06-20 11:42:44.795859622 -0400
+  Permissions:           -rw-r--r--
+  Owner:                 kushal:kushal
+  Inode:                 16452018
+  Hard links:            1
+  MIME type:             text/xml
+  SHA-256:               c32197519d42d2330ce803dc293a56399c1ef633a582cd2184f75919d4e1fae3
+  Last git commit:       05a8ba5 2026-06-20 11:43:48 -0400 add claude changes
+
+--- CONTENT ---
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      Dark (night) variant of Theme.MyWeather. Same role as the light theme: it
+      only paints the window background and the initial system-bar appearance
+      before Compose takes over. Android selects this file automatically via the
+      -night resource qualifier when the system is in dark mode, which is how this
+      app gets day/night behaviour without an AppCompat/Material "DayNight" theme.
+    -->
+    <style name="Theme.MyWeather" parent="@android:style/Theme.Material.NoActionBar">
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowBackground">@android:color/background_dark</item>
+    </style>
+</resources>
+
+
+################################################################################
 # FILE: app/src/main/res/values/strings.xml
 ################################################################################
 
@@ -4673,25 +4522,35 @@ val MyWeatherTypography = Typography()
   File name:             themes.xml
   Relative path:         app/src/main/res/values/themes.xml
   Absolute path:         /home/kushal/src/kotlin/myweather/app/src/main/res/values/themes.xml
-  Size:                  665 B (665 bytes)
-  Last modified:         2026-06-19 16:50:12.000000000 -0400
+  Size:                  1.1 KiB (1228 bytes)
+  Last modified:         2026-06-20 11:42:21.499723950 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 16257600
   Hard links:            1
   MIME type:             text/xml
-  SHA-256:               7ed1e4ebbcb19f3afe28db2f5f8830058cfbf69f01992c9a24587d59b148dcff
-  Last git commit:       0386d8e 2026-06-20 08:06:03 -0400 move one folder up
+  SHA-256:               1b8de73da9fe51fc0ebd901075fa65834d2f6af3e7dcbaf082850da85e213ce5
+  Last git commit:       05a8ba5 2026-06-20 11:43:48 -0400 add claude changes
 
 --- CONTENT ---
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!--
-      A thin Material 3 base theme. The actual colors are driven by the Compose
-      MaterialTheme (with Android 12+ dynamic color) at runtime; this XML theme
-      mostly sets the window background and the splash/transition appearance.
+      Thin framework base theme (light / default).
+
+      The real colors are driven by the Compose MaterialTheme (with Android 12+
+      dynamic color) at runtime; this XML theme only paints the window background
+      and the initial system-bar appearance shown for the split second before
+      Compose draws.
+
+      We deliberately use a *framework* (android:) parent: the app pulls in only
+      Compose Material 3 — there is no AppCompat or Material Components library on
+      the classpath, so Theme.AppCompat.* / Theme.MaterialComponents.* parents are
+      unavailable. There is also no `android:Theme.Material.DayNight.*` in the
+      framework, so day/night is handled by the values-night/ variant of this file
+      via the resource qualifier instead of a single "DayNight" parent.
     -->
-    <style name="Theme.MyWeather" parent="android:Theme.Material.DayNight.NoActionBar">
+    <style name="Theme.MyWeather" parent="@android:style/Theme.Material.Light.NoActionBar">
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:windowBackground">@android:color/background_light</item>
@@ -7292,117 +7151,6 @@ zipStorePath=wrapper/dists
 
 
 ################################################################################
-# FILE: libs.versions.toml
-################################################################################
-
---- METADATA ---
-  File name:             libs.versions.toml
-  Relative path:         libs.versions.toml
-  Absolute path:         /home/kushal/src/kotlin/myweather/libs.versions.toml
-  Size:                  5.9 KiB (6061 bytes)
-  Last modified:         2026-06-20 11:19:10.000000000 -0400
-  Permissions:           -rw-------
-  Owner:                 kushal:kushal
-  Inode:                 16257478
-  Hard links:            1
-  MIME type:             text/plain
-  SHA-256:               c90d3d210f07a21d7cde66d0fc98b821a39efe2fde2e00b5447938865651d589
-  Last git commit:       5465c89 2026-06-20 07:24:09 -0400 initialize repository
-
---- CONTENT ---
-# ─────────────────────────────────────────────────────────────────────────────
-# Central version catalog. This is the single source of truth for dependency
-# and plugin versions; modules reference these aliases via `libs.*`.
-#
-# The versions below are a mid-2026 baseline. They are intentionally pinned so
-# the build is reproducible; bump them here (or via Renovate/Dependabot) and the
-# whole project updates in one place. CI (`.github/workflows`) is the source of
-# truth for whether a given set actually builds.
-# ─────────────────────────────────────────────────────────────────────────────
-[versions]
-# Build toolchain ----------------------------------------------------------------
-agp = "8.13.0"                 # Android Gradle Plugin (8.x line; supports compileSdk 36)
-kotlin = "2.4.0"               # Kotlin (K2). Compose-compiler & serialization plugins track this exact version.
-ksp = "2.3.9"                  # KSP2 — decoupled versioning; 2.3.9 supports Kotlin 2.2+ (incl. 2.4.0)
-
-# AndroidX / Jetpack -------------------------------------------------------------
-coreKtx = "1.15.0"
-lifecycle = "2.9.4"
-activityCompose = "1.10.1"
-composeBom = "2026.05.00"      # Pins all androidx.compose.* artifact versions together
-navigationCompose = "2.9.4"
-datastore = "1.1.7"
-room = "2.8.4"                 # Room 2.x (maintenance line); Kotlin-codegen via KSP
-
-# Kotlinx ------------------------------------------------------------------------
-coroutines = "1.10.2"
-serializationJson = "1.8.0"
-
-# Networking ---------------------------------------------------------------------
-retrofit = "3.0.0"             # Retrofit 3 (Kotlin-first; pulls OkHttp 4.12 transitively)
-okhttp = "4.12.0"
-
-# Testing ------------------------------------------------------------------------
-junit = "4.13.2"
-androidxJunit = "1.2.1"
-espresso = "3.6.1"
-archCoreTesting = "2.2.0"
-
-[libraries]
-# Core / lifecycle
-androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
-androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycle" }
-androidx-lifecycle-runtime-compose = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "lifecycle" }
-androidx-lifecycle-viewmodel-compose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "lifecycle" }
-androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
-
-# Compose (versions come from the BOM)
-androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
-androidx-ui = { group = "androidx.compose.ui", name = "ui" }
-androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
-androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
-androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
-androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
-androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
-androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
-androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
-
-# Persistence / preferences
-androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
-androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
-androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
-androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
-
-# Kotlinx
-kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }
-kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
-kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "serializationJson" }
-
-# Networking
-retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
-retrofit-converter-kotlinx-serialization = { group = "com.squareup.retrofit2", name = "converter-kotlinx-serialization", version.ref = "retrofit" }
-okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
-okhttp-logging-interceptor = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttp" }
-
-# Testing — JVM unit tests
-junit = { group = "junit", name = "junit", version.ref = "junit" }
-kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutines" }
-
-# Testing — instrumented (device/emulator)
-androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidxJunit" }
-androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espresso" }
-androidx-arch-core-testing = { group = "androidx.arch.core", name = "core-testing", version.ref = "archCoreTesting" }
-androidx-room-testing = { group = "androidx.room", name = "room-testing", version.ref = "room" }
-
-[plugins]
-android-application = { id = "com.android.application", version.ref = "agp" }
-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
-kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
-kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
-ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
-
-
-################################################################################
 # FILE: README.md
 ################################################################################
 
@@ -7410,15 +7158,15 @@ ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
   File name:             README.md
   Relative path:         README.md
   Absolute path:         /home/kushal/src/kotlin/myweather/README.md
-  Size:                  8.2 KiB (8414 bytes)
-  Last modified:         2026-06-20 04:58:06.000000000 -0400
+  Size:                  8.9 KiB (9191 bytes)
+  Last modified:         2026-06-20 11:43:33.451683361 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 16257606
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               4adff24e2e717a9c52755c7b4089f6cbe14e063dc2f487523a9e71aa69801b9a
-  Last git commit:       5465c89 2026-06-20 07:24:09 -0400 initialize repository
+  SHA-256:               0763f9851d0cee312c66093c63ed149909fe502df5dd75fc4b22c2df5e31c25c
+  Last git commit:       05a8ba5 2026-06-20 11:43:48 -0400 add claude changes
 
 --- CONTENT ---
 # MyWeather
@@ -7529,6 +7277,15 @@ Studio is required — the Gradle wrapper is committed (including
 
 Minimum / target: **minSdk 34 (Android 14), targetSdk 35**.
 
+### Application ID
+
+The installable application identity is **`com.github.kusl.myweather`** (debug
+builds get a `.debug` suffix, so a debug and a release build can sit side by side
+on one device). This is intentionally distinct from the Kotlin source namespace
+`com.kusl.myweather`, which is internal and never user-visible — AGP allows the
+two to differ, and changing the store-facing id does not require touching any
+package declarations or imports.
+
 ### Signing
 
 `assembleRelease` is designed to **never fail for lack of secrets**:
@@ -7555,6 +7312,10 @@ storePassword=…
 keyAlias=…
 keyPassword=…
 ```
+
+For the CI build, the same four values are supplied as repository secrets
+(`KEYSTORE_BASE64`, `MYWEATHER_KEYSTORE_PASSWORD`, `MYWEATHER_KEY_ALIAS`,
+`MYWEATHER_KEY_PASSWORD`); see `.github/workflows/build_apk.yml`.
 
 ---
 
@@ -7610,6 +7371,9 @@ app/src/main/java/com/kusl/myweather/
 └─ ui/              Theme, custom icons, navigation, screens, components
 ```
 
+(The `java/com/kusl/myweather/…` path is the source **namespace**, which is
+separate from the installable application id — see *Application ID* above.)
+
 A short module-level note lives in [app/README.md](app/README.md).
 
 ---
@@ -7620,10 +7384,10 @@ The dependency and toolchain versions in `gradle/libs.versions.toml` are a
 **mid-2026 baseline**, pinned for reproducibility. They are meant to be bumped
 over time (Dependabot does this), with CI verifying each change builds.
 
-This project deliberately uses **Android Gradle Plugin 8.x** with the
-`kotlin-android` plugin. Under AGP 8.x + Kotlin 2.3+, that plugin emits a benign
-*deprecation warning* — the build is unaffected. (AGP 9.0 changes how Kotlin is
-applied and removes the standalone plugin; this project stays on the 8.x line.)
+The catalog is the single source of truth for the Android Gradle Plugin, Kotlin,
+and Compose-BOM versions — read the exact numbers there rather than trusting a
+value copied into prose. CI (`.github/workflows`) is what verifies that a given
+set actually builds.
 
 ---
 
@@ -7685,310 +7449,17 @@ include(":app")
 
 
 ################################################################################
-# FILE: WeatherRepositoryImpl.kt
-################################################################################
-
---- METADATA ---
-  File name:             WeatherRepositoryImpl.kt
-  Relative path:         WeatherRepositoryImpl.kt
-  Absolute path:         /home/kushal/src/kotlin/myweather/WeatherRepositoryImpl.kt
-  Size:                  11.6 KiB (11946 bytes)
-  Last modified:         2026-06-20 11:19:10.000000000 -0400
-  Permissions:           -rw-------
-  Owner:                 kushal:kushal
-  Inode:                 16257480
-  Hard links:            1
-  MIME type:             text/x-c
-  SHA-256:               4416461adb78f36fa0d435065b62d56bcdb3989a5b8dbeb9c37a06c61f1d8b4f
-  Last git commit:       5465c89 2026-06-20 07:24:09 -0400 initialize repository
-
---- CONTENT ---
-package com.kusl.myweather.data
-
-import android.util.Log
-import com.kusl.myweather.core.GeoPoint
-import com.kusl.myweather.core.GridMath
-import com.kusl.myweather.core.GridPoint
-import com.kusl.myweather.core.SystemTimeSource
-import com.kusl.myweather.core.TimeSource
-import com.kusl.myweather.data.local.dao.ForecastCacheDao
-import com.kusl.myweather.data.local.dao.PointMetadataDao
-import com.kusl.myweather.data.local.entity.ForecastCacheEntity
-import com.kusl.myweather.data.local.entity.PointMetadataEntity
-import com.kusl.myweather.data.mapper.NwsMappers
-import com.kusl.myweather.data.remote.NwsApi
-import com.kusl.myweather.data.remote.WeatherJson
-import com.kusl.myweather.domain.AreaWeatherResult
-import com.kusl.myweather.domain.WeatherRepository
-import com.kusl.myweather.domain.model.AreaWeather
-import com.kusl.myweather.domain.model.Forecast
-import com.kusl.myweather.domain.model.PointMetadata
-import com.kusl.myweather.domain.model.WeatherTile
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.sync.Semaphore
-import kotlinx.coroutines.sync.withPermit
-import kotlinx.serialization.encodeToString
-import retrofit2.Response
-
-/**
- * The only type that knows the freshness policy:
- *  - long-TTL `coordinate -> grid` metadata (effectively immutable),
- *  - short-TTL grid forecasts honouring NWS `Cache-Control` (clamped),
- *  - conditional GETs (`If-None-Match` -> `304`) to refresh expiry cheaply, and
- *  - serving a stale-but-valid cached copy when NWS is unreachable (offline-first).
- *
- * Ported from the .NET dashboard's `WeatherService`.
- */
-class WeatherRepositoryImpl(
-    private val api: NwsApi,
-    private val pointDao: PointMetadataDao,
-    private val forecastDao: ForecastCacheDao,
-    private val time: TimeSource = SystemTimeSource,
-) : WeatherRepository {
-
-    override suspend fun getAreaWeather(point: GeoPoint, radius: Int): AreaWeatherResult {
-        val coord = point.rounded()
-
-        return when (val meta = resolveMetadata(coord)) {
-            is MetaResult.NoCoverage -> AreaWeatherResult.NoCoverage
-            is MetaResult.Unavailable ->
-                AreaWeatherResult.Unavailable("Couldn't reach the weather service. Check your connection and try again.")
-            is MetaResult.Ok -> {
-                val primary = when (val p = fetchForecast(meta.metadata.grid)) {
-                    is ForecastResult.Ok -> p
-                    ForecastResult.Unavailable ->
-                        return AreaWeatherResult.Unavailable("The forecast didn't load. Check your connection and try again.")
-                }
-
-                // Assemble the surrounding ring, cache-aside, with bounded
-                // concurrency so even a cold area can't stampede NWS.
-                val neighborGrids = GridMath.surrounding(meta.metadata.grid, radius)
-                val semaphore = Semaphore(NEIGHBOR_CONCURRENCY)
-                val neighborTiles = coroutineScope {
-                    neighborGrids.map { grid ->
-                        async {
-                            val r = semaphore.withPermit { fetchForecast(grid) }
-                            (r as? ForecastResult.Ok)?.let {
-                                WeatherTile(
-                                    grid = grid,
-                                    forecast = it.forecast,
-                                    isPrimary = false,
-                                    distanceMeters = approxMeters(meta.metadata.grid, grid),
-                                )
-                            }
-                        }
-                    }.awaitAll().filterNotNull()
-                }.sortedBy { it.distanceMeters ?: Double.MAX_VALUE }
-
-                val primaryTile = WeatherTile(
-                    grid = meta.metadata.grid,
-                    forecast = primary.forecast,
-                    isPrimary = true,
-                    distanceMeters = 0.0,
-                )
-
-                // Bound DB growth without discarding our offline fallback: only
-                // drop entries that expired more than a week ago.
-                runCatching { forecastDao.deleteExpiredBefore(time.nowMs() - STALE_RETENTION_MS) }
-
-                val fromCache = meta.stale || primary.stale
-                AreaWeatherResult.Success(
-                    AreaWeather(
-                        query = coord,
-                        metadata = meta.metadata,
-                        primary = primary.forecast,
-                        tiles = listOf(primaryTile) + neighborTiles,
-                        fromCache = fromCache,
-                    ),
-                )
-            }
-        }
-    }
-
-    // ── metadata (long-lived) ─────────────────────────────────────────────────
-
-    private sealed interface MetaResult {
-        data class Ok(val metadata: PointMetadata, val stale: Boolean) : MetaResult
-        data object NoCoverage : MetaResult
-        data object Unavailable : MetaResult
-    }
-
-    private suspend fun resolveMetadata(coord: GeoPoint): MetaResult {
-        val key = coord.toCacheKey()
-        val now = time.nowMs()
-        val cached = pointDao.getByKey(key)
-        if (cached != null && now < cached.expiresAtEpochMs) {
-            return MetaResult.Ok(cached.toDomain(), stale = false)
-        }
-
-        val response = runCatching { api.getPoint(coord.toApiString()) }.getOrNull()
-            ?: return cached?.let { MetaResult.Ok(it.toDomain(), stale = true) } ?: MetaResult.Unavailable
-
-        if (response.code() == 404) {
-            // Coverage doesn't change; trust a stale row if we have one.
-            return cached?.let { MetaResult.Ok(it.toDomain(), stale = true) } ?: MetaResult.NoCoverage
-        }
-        if (!response.isSuccessful) {
-            return cached?.let { MetaResult.Ok(it.toDomain(), stale = true) } ?: MetaResult.Unavailable
-        }
-
-        val mapped = NwsMappers.toPointMetadata(coord, response.body())
-            ?: return cached?.let { MetaResult.Ok(it.toDomain(), stale = true) } ?: MetaResult.NoCoverage
-
-        pointDao.upsert(mapped.toEntity(key, retrievedAt = now, expiresAt = now + METADATA_TTL_MS))
-        return MetaResult.Ok(mapped, stale = false)
-    }
-
-    // ── forecast (short-lived, conditional) ────────────────────────────────────
-
-    private sealed interface ForecastResult {
-        data class Ok(val forecast: Forecast, val stale: Boolean) : ForecastResult
-        data object Unavailable : ForecastResult
-    }
-
-    private suspend fun fetchForecast(grid: GridPoint): ForecastResult {
-        val key = grid.toString()
-        val now = time.nowMs()
-        val cached = forecastDao.getByKey(key)
-        if (cached != null && now < cached.expiresAtEpochMs) {
-            return ForecastResult.Ok(cached.decodeForecast(), stale = false)
-        }
-
-        val response = runCatching {
-            api.getForecast(grid.gridId, "${grid.gridX},${grid.gridY}", ifNoneMatch = cached?.etag)
-        }.getOrNull()
-            ?: return cached?.let { ForecastResult.Ok(it.decodeForecast(), stale = true) } ?: ForecastResult.Unavailable
-
-        return when {
-            // Cheapest path: unchanged on the server — just extend the TTL.
-            response.code() == 304 && cached != null -> {
-                val renewed = cached.copy(
-                    etag = response.etag() ?: cached.etag,
-                    retrievedAtEpochMs = now,
-                    expiresAtEpochMs = now + computeTtlMs(response),
-                )
-                forecastDao.upsert(renewed)
-                ForecastResult.Ok(cached.decodeForecast(), stale = false)
-            }
-
-            response.isSuccessful -> {
-                val forecast = NwsMappers.toForecast(grid, response.body())
-                if (forecast == null) {
-                    cached?.let { ForecastResult.Ok(it.decodeForecast(), stale = true) } ?: ForecastResult.Unavailable
-                } else {
-                    forecastDao.upsert(
-                        ForecastCacheEntity(
-                            gridKey = key,
-                            gridId = grid.gridId,
-                            gridX = grid.gridX,
-                            gridY = grid.gridY,
-                            payloadJson = WeatherJson.encodeToString(forecast),
-                            etag = response.etag(),
-                            retrievedAtEpochMs = now,
-                            expiresAtEpochMs = now + computeTtlMs(response),
-                        ),
-                    )
-                    ForecastResult.Ok(forecast, stale = false)
-                }
-            }
-
-            // 404 (no such cell — common at office edges), 429, 5xx, etc.:
-            // serve a stale copy if we have one, otherwise report unavailable.
-            else -> {
-                if (response.code() !in intArrayOf(404, 304)) {
-                    Log.w(TAG, "NWS forecast for $grid returned HTTP ${response.code()}")
-                }
-                cached?.let { ForecastResult.Ok(it.decodeForecast(), stale = true) } ?: ForecastResult.Unavailable
-            }
-        }
-    }
-
-    // ── TTL policy (mirrors the .NET ComputeExpiry) ─────────────────────────────
-
-    private fun computeTtlMs(response: Response<*>): Long {
-        val maxAge = parseMaxAgeSeconds(response.headers()["Cache-Control"])
-        var ttl = maxAge?.let { it * 1000L } ?: DEFAULT_FORECAST_TTL_MS
-        if (ttl <= 0L) ttl = DEFAULT_FORECAST_TTL_MS
-        if (ttl > MAX_FORECAST_TTL_MS) ttl = MAX_FORECAST_TTL_MS
-        return ttl
-    }
-
-    companion object {
-        private const val TAG = "WeatherRepository"
-
-        // Nominal NWS cell size (~2.5 km), used only to order/label neighbours.
-        private const val NOMINAL_CELL_METERS = 2_500.0
-        private const val NEIGHBOR_CONCURRENCY = 4
-
-        val METADATA_TTL_MS = 30L * 24 * 60 * 60 * 1000        // 30 days
-        val DEFAULT_FORECAST_TTL_MS = 30L * 60 * 1000          // 30 minutes
-        val MAX_FORECAST_TTL_MS = 6L * 60 * 60 * 1000          // 6 hours
-        private val STALE_RETENTION_MS = 7L * 24 * 60 * 60 * 1000 // keep stale rows a week
-
-        private val MAX_AGE_REGEX = Regex("""max-age\s*=\s*(\d+)""", RegexOption.IGNORE_CASE)
-
-        fun parseMaxAgeSeconds(cacheControl: String?): Long? =
-            cacheControl?.let { MAX_AGE_REGEX.find(it)?.groupValues?.getOrNull(1)?.toLongOrNull() }
-
-        fun approxMeters(origin: GridPoint, cell: GridPoint): Double {
-            val dx = (cell.gridX - origin.gridX).toDouble()
-            val dy = (cell.gridY - origin.gridY).toDouble()
-            return Math.sqrt(dx * dx + dy * dy) * NOMINAL_CELL_METERS
-        }
-    }
-}
-
-// ── entity <-> domain helpers ───────────────────────────────────────────────────
-
-private fun PointMetadataEntity.toDomain() = PointMetadata(
-    queryLatitude = queryLatitude,
-    queryLongitude = queryLongitude,
-    gridId = gridId,
-    gridX = gridX,
-    gridY = gridY,
-    city = city,
-    state = state,
-    timeZone = timeZone,
-)
-
-private fun PointMetadata.toEntity(key: String, retrievedAt: Long, expiresAt: Long) = PointMetadataEntity(
-    cacheKey = key,
-    queryLatitude = queryLatitude,
-    queryLongitude = queryLongitude,
-    gridId = gridId,
-    gridX = gridX,
-    gridY = gridY,
-    city = city,
-    state = state,
-    timeZone = timeZone,
-    retrievedAtEpochMs = retrievedAt,
-    expiresAtEpochMs = expiresAt,
-)
-
-private fun ForecastCacheEntity.decodeForecast(): Forecast =
-    WeatherJson.decodeFromString(Forecast.serializer(), payloadJson)
-
-private fun Response<*>.etag(): String? = headers()["ETag"]
-
-
-################################################################################
 # DUMP SUMMARY
 ################################################################################
-  Files dumped   : 83
-  Total size     : 271.6 KiB (278160 bytes)
+  Files dumped   : 81
+  Total size     : 251.2 KiB (257286 bytes)
   Output file    : /home/kushal/src/kotlin/myweather/docs/llm/dump.txt
-  Completed at   : 2026-06-20T11:22:56-04:00
+  Completed at   : 2026-06-20T11:44:26-04:00
 ################################################################################
 # END OF DUMP
 ################################################################################
 
-real	0m2.521s
-user	0m1.187s
-sys	0m1.647s
-kushal@fedora:~/src/kotlin/myweather$ git rm app-build.gradle.kts libs.versions.toml WeatherRepositoryImpl.kt
-rm 'WeatherRepositoryImpl.kt'
-rm 'app-build.gradle.kts'
-rm 'libs.versions.toml'
+real	0m2.481s
+user	0m1.193s
+sys	0m1.612s
 kushal@fedora:~/src/kotlin/myweather$ 
