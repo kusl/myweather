@@ -1,0 +1,13 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- A simple sun + cloud mark, centered in the adaptive icon safe zone. -->
+    <path
+        android:fillColor="#FFD166"
+        android:pathData="M64,36m-12,0a12,12 0,1 1,24 0a12,12 0,1 1,-24 0" />
+    <path
+        android:fillColor="#F2F6F9"
+        android:pathData="M44,72c-6,0 -11,-5 -11,-11c0,-6 5,-11 11,-11c1,0 2,0 3,0.4C49,46 54,43 60,43c8,0 14,6 14,14c0,0.5 0,1 -0.1,1.5c4,0.8 7,4.3 7,8.5c0,5 -4,9 -9,9z" />
+</vector>

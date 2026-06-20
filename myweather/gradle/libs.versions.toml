@@ -1,0 +1,90 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Central version catalog. This is the single source of truth for dependency
+# and plugin versions; modules reference these aliases via `libs.*`.
+#
+# The versions below are a mid-2026 baseline. They are intentionally pinned so
+# the build is reproducible; bump them here (or via Renovate/Dependabot) and the
+# whole project updates in one place. CI (`.github/workflows`) is the source of
+# truth for whether a given set actually builds.
+# ─────────────────────────────────────────────────────────────────────────────
+[versions]
+# Build toolchain ----------------------------------------------------------------
+agp = "8.13.0"                 # Android Gradle Plugin (8.x line; supports compileSdk 36)
+kotlin = "2.4.0"               # Kotlin (K2). Compose-compiler & serialization plugins track this exact version.
+ksp = "2.3.9"                  # KSP2 — decoupled versioning; 2.3.9 supports Kotlin 2.2+ (incl. 2.4.0)
+
+# AndroidX / Jetpack -------------------------------------------------------------
+coreKtx = "1.15.0"
+lifecycle = "2.9.4"
+activityCompose = "1.10.1"
+composeBom = "2026.05.00"      # Pins all androidx.compose.* artifact versions together
+navigationCompose = "2.9.4"
+datastore = "1.1.7"
+room = "2.8.4"                 # Room 2.x (maintenance line); Kotlin-codegen via KSP
+
+# Kotlinx ------------------------------------------------------------------------
+coroutines = "1.10.2"
+serializationJson = "1.8.0"
+
+# Networking ---------------------------------------------------------------------
+retrofit = "3.0.0"             # Retrofit 3 (Kotlin-first; pulls OkHttp 4.12 transitively)
+okhttp = "4.12.0"
+
+# Testing ------------------------------------------------------------------------
+junit = "4.13.2"
+androidxJunit = "1.2.1"
+espresso = "3.6.1"
+archCoreTesting = "2.2.0"
+
+[libraries]
+# Core / lifecycle
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycle" }
+androidx-lifecycle-runtime-compose = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "lifecycle" }
+androidx-lifecycle-viewmodel-compose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "lifecycle" }
+androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
+
+# Compose (versions come from the BOM)
+androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
+androidx-ui = { group = "androidx.compose.ui", name = "ui" }
+androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
+androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
+androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
+androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
+androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
+androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
+androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
+
+# Persistence / preferences
+androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
+androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
+androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
+androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
+
+# Kotlinx
+kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }
+kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
+kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "serializationJson" }
+
+# Networking
+retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
+retrofit-converter-kotlinx-serialization = { group = "com.squareup.retrofit2", name = "converter-kotlinx-serialization", version.ref = "retrofit" }
+okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
+okhttp-logging-interceptor = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttp" }
+
+# Testing — JVM unit tests
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutines" }
+
+# Testing — instrumented (device/emulator)
+androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidxJunit" }
+androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espresso" }
+androidx-arch-core-testing = { group = "androidx.arch.core", name = "core-testing", version.ref = "archCoreTesting" }
+androidx-room-testing = { group = "androidx.room", name = "room-testing", version.ref = "room" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }

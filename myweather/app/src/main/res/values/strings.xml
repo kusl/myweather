@@ -1,0 +1,29 @@
+<resources>
+    <string name="app_name">MyWeather</string>
+
+    <!-- Bottom navigation -->
+    <string name="nav_dashboard">Weather</string>
+    <string name="nav_locations">Locations</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Dashboard -->
+    <string name="dashboard_title">MyWeather</string>
+    <string name="use_my_location">Use my location</string>
+    <string name="refresh">Refresh</string>
+    <string name="offline_banner">Showing saved data — you appear to be offline.</string>
+    <string name="stale_banner">Network unavailable; showing the last forecast that loaded.</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="user_agent_label">NWS User-Agent</string>
+    <string name="user_agent_help">The National Weather Service asks every client to send a descriptive User-Agent that identifies the app and a contact. Set yours here.</string>
+    <string name="neighborhood_radius_label">Neighborhood radius</string>
+    <string name="save">Save</string>
+
+    <!-- Locations -->
+    <string name="locations_title">Saved locations</string>
+    <string name="add_location">Add location</string>
+    <string name="location_label_hint">Label (e.g. Home)</string>
+    <string name="latitude_hint">Latitude</string>
+    <string name="longitude_hint">Longitude</string>
+</resources>

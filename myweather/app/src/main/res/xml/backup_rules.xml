@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Legacy (Android 11 and below) auto-backup rules. The forecast cache is
+  reproducible and excluded; user settings + saved locations are small and
+  allowed so a device migration keeps them.
+-->
+<full-backup-content>
+    <exclude domain="database" path="myweather.db" />
+    <exclude domain="database" path="myweather.db-wal" />
+    <exclude domain="database" path="myweather.db-shm" />
+</full-backup-content>
