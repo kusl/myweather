@@ -26,5 +26,6 @@ release.keystore
 # OS noise
 .DS_Store
 Thumbs.db
-android.keystore.base64
 password.log
+myweather-release.keystore
+myweather-release.keystore.base64
