@@ -46,6 +46,11 @@ fun resolveReleaseSigning(): Map<String, String>? {
 }
 
 android {
+    // Code package for the generated R and BuildConfig classes. This is internal
+    // and never user-visible, so it stays as-is: every `import com.kusl.myweather.*`
+    // (including R and BuildConfig) and the ProGuard keep-rules depend on it.
+    // It is intentionally NOT the same as applicationId below — AGP allows them to
+    // differ, and renaming it would mean rewriting every package declaration.
     namespace = "com.kusl.myweather"
 
     // Compile against API 36 (latest available to AGP 8.13) while targeting the
@@ -53,7 +58,11 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.kusl.myweather"
+        // Installable / store-facing application identity. Deliberately distinct
+        // from `namespace` above: the app is published under this GitHub-org-style
+        // id. Debug builds append ".debug" (see below) so a debug and a release
+        // build can be installed side by side on the same device.
+        applicationId = "com.github.kusl.myweather"
         minSdk = 34
         targetSdk = 35
         versionCode = 1

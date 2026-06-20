@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      Dark (night) variant of Theme.MyWeather. Same role as the light theme: it
+      only paints the window background and the initial system-bar appearance
+      before Compose takes over. Android selects this file automatically via the
+      -night resource qualifier when the system is in dark mode, which is how this
+      app gets day/night behaviour without an AppCompat/Material "DayNight" theme.
+    -->
+    <style name="Theme.MyWeather" parent="@android:style/Theme.Material.NoActionBar">
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowBackground">@android:color/background_dark</item>
+    </style>
+</resources>

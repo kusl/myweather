@@ -26,8 +26,17 @@ by package structure and interface seams rather than by module boundaries.
 ## Build specifics
 
 - `compileSdk 36`, `minSdk 34`, `targetSdk 35`, JDK 17.
+- Application id `com.github.kusl.myweather` (`…debug` for debug builds). The
+  Kotlin namespace is `com.kusl.myweather` and is intentionally separate from the
+  application id — they are allowed to differ and serve different purposes.
 - Compose via the BOM; KSP only for Room.
 - `assembleRelease` reads signing material from env vars or `keystore.properties`,
   falling back to debug signing when neither is present (see the root README).
 - `testOptions.unitTests.isReturnDefaultValues = true` so JVM unit tests can
   touch `android.util.Log` stubs without throwing.
+- The XML window theme (`res/values/themes.xml` + `res/values-night/themes.xml`)
+  is a thin framework (`android:Theme.Material*`) base — there is no
+  AppCompat/Material-Components library on the classpath — and only sets the
+  pre-Compose window background and system-bar colors. All real theming is the
+  Compose `MaterialTheme`.
+  

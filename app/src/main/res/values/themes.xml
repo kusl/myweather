@@ -1,11 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!--
-      A thin Material 3 base theme. The actual colors are driven by the Compose
-      MaterialTheme (with Android 12+ dynamic color) at runtime; this XML theme
-      mostly sets the window background and the splash/transition appearance.
+      Thin framework base theme (light / default).
+
+      The real colors are driven by the Compose MaterialTheme (with Android 12+
+      dynamic color) at runtime; this XML theme only paints the window background
+      and the initial system-bar appearance shown for the split second before
+      Compose draws.
+
+      We deliberately use a *framework* (android:) parent: the app pulls in only
+      Compose Material 3 — there is no AppCompat or Material Components library on
+      the classpath, so Theme.AppCompat.* / Theme.MaterialComponents.* parents are
+      unavailable. There is also no `android:Theme.Material.DayNight.*` in the
+      framework, so day/night is handled by the values-night/ variant of this file
+      via the resource qualifier instead of a single "DayNight" parent.
     -->
-    <style name="Theme.MyWeather" parent="android:Theme.Material.DayNight.NoActionBar">
+    <style name="Theme.MyWeather" parent="@android:style/Theme.Material.Light.NoActionBar">
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:windowBackground">@android:color/background_light</item>

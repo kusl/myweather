@@ -106,6 +106,15 @@ Studio is required — the Gradle wrapper is committed (including
 
 Minimum / target: **minSdk 34 (Android 14), targetSdk 35**.
 
+### Application ID
+
+The installable application identity is **`com.github.kusl.myweather`** (debug
+builds get a `.debug` suffix, so a debug and a release build can sit side by side
+on one device). This is intentionally distinct from the Kotlin source namespace
+`com.kusl.myweather`, which is internal and never user-visible — AGP allows the
+two to differ, and changing the store-facing id does not require touching any
+package declarations or imports.
+
 ### Signing
 
 `assembleRelease` is designed to **never fail for lack of secrets**:
@@ -132,6 +141,10 @@ storePassword=…
 keyAlias=…
 keyPassword=…
 ```
+
+For the CI build, the same four values are supplied as repository secrets
+(`KEYSTORE_BASE64`, `MYWEATHER_KEYSTORE_PASSWORD`, `MYWEATHER_KEY_ALIAS`,
+`MYWEATHER_KEY_PASSWORD`); see `.github/workflows/build_apk.yml`.
 
 ---
 
@@ -187,6 +200,9 @@ app/src/main/java/com/kusl/myweather/
 └─ ui/              Theme, custom icons, navigation, screens, components
 ```
 
+(The `java/com/kusl/myweather/…` path is the source **namespace**, which is
+separate from the installable application id — see *Application ID* above.)
+
 A short module-level note lives in [app/README.md](app/README.md).
 
 ---
@@ -197,10 +213,10 @@ The dependency and toolchain versions in `gradle/libs.versions.toml` are a
 **mid-2026 baseline**, pinned for reproducibility. They are meant to be bumped
 over time (Dependabot does this), with CI verifying each change builds.
 
-This project deliberately uses **Android Gradle Plugin 8.x** with the
-`kotlin-android` plugin. Under AGP 8.x + Kotlin 2.3+, that plugin emits a benign
-*deprecation warning* — the build is unaffected. (AGP 9.0 changes how Kotlin is
-applied and removes the standalone plugin; this project stays on the 8.x line.)
+The catalog is the single source of truth for the Android Gradle Plugin, Kotlin,
+and Compose-BOM versions — read the exact numbers there rather than trusting a
+value copied into prose. CI (`.github/workflows`) is what verifies that a given
+set actually builds.
 
 ---
 
