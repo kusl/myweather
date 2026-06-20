@@ -75,7 +75,7 @@ jobs:
         # Only from the canonical repo on a real push to main — never from forks
         # or pull requests (which also lack the signing secrets).
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'kusl/myweather' }}
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: rolling
           name: Rolling build
