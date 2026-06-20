@@ -26,3 +26,4 @@ release.keystore
 # OS noise
 .DS_Store
 Thumbs.db
+android.keystore.base64
