@@ -7,7 +7,7 @@
 
 DUMP METADATA
 ═════════════════════════════════════════════════════════════════════════════════
-  Generated at   : 2026-06-20T13:25:19-04:00
+  Generated at   : 2026-06-20T13:32:12-04:00
   Generator      : export.sh
   Host           : fedora
   User           : kushal
@@ -17,17 +17,17 @@ REPOSITORY METADATA
 ═════════════════════════════════════════════════════════════════════════════════
   Repository root: /home/kushal/src/kotlin/myweather
   Branch         : main
-  Commit (full)  : 22f58e882eee7d4c40b4e5cc921349cb947e3a7b
-  Commit (short) : 22f58e8
-  Commit date    : 2026-06-20 13:22:01 -0400
-  Commit message : run dump
+  Commit (full)  : 5d158c5ffe703017abdc82752f3bcb456da003fe
+  Commit (short) : 5d158c5
+  Commit date    : 2026-06-20 13:32:03 -0400
+  Commit message : add claude response
   Remote origin  : git@github.com:kusl/myweather.git
   Files included : 82
   Excluded path  : docs/llm/
 
 GIT WORKING TREE STATUS (first 20 lines)
 ═════════════════════════════════════════════════════════════════════════════════
- M docs/llm/vendor/claude-conversations.md
+  (clean — no uncommitted changes)
 
 ################################################################################
 # FILE: export.sh  [THIS SCRIPT — included for full context]
@@ -545,15 +545,15 @@ mv -f "$TMP_FILE" "$OUTPUT_FILE"
   File name:             build.gradle.kts
   Relative path:         app/build.gradle.kts
   Absolute path:         /home/kushal/src/kotlin/myweather/app/build.gradle.kts
-  Size:                  6.9 KiB (7081 bytes)
-  Last modified:         2026-06-20 11:42:55.904660465 -0400
+  Size:                  6.9 KiB (7155 bytes)
+  Last modified:         2026-06-20 13:31:12.214180993 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 16257498
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               d101d3bb1bfcb788287e05a97e45b495388baabbd4305a42f0c13a9b0774e4bb
-  Last git commit:       05a8ba5 2026-06-20 11:43:48 -0400 add claude changes
+  SHA-256:               79b15a5fae9ba4409336dbf6c3417059d593a7c5886a62f00c217b6f30010979
+  Last git commit:       5d158c5 2026-06-20 13:32:03 -0400 add claude response
 
 --- CONTENT ---
 import com.android.build.api.dsl.ApkSigningConfig
@@ -611,9 +611,10 @@ android {
     // differ, and renaming it would mean rewriting every package declaration.
     namespace = "com.kusl.myweather"
 
-    // Compile against API 36 (latest available to AGP 8.13) while targeting the
-    // requested API 35 and supporting Android 14 (API 34) as the floor.
-    compileSdk = 36
+    // Compile against API 37 — required by androidx.lifecycle 2.11.0, whose AAR
+    // metadata mandates compileSdk >= 37 — while still targeting the requested
+    // API 35 and supporting Android 14 (API 34) as the floor.
+    compileSdk = 37
 
     defaultConfig {
         // Installable / store-facing application identity. Deliberately distinct
@@ -6674,15 +6675,15 @@ toolchainVersion=21
   File name:             libs.versions.toml
   Relative path:         gradle/libs.versions.toml
   Absolute path:         /home/kushal/src/kotlin/myweather/gradle/libs.versions.toml
-  Size:                  5.9 KiB (6060 bytes)
-  Last modified:         2026-06-20 13:21:00.604346697 -0400
+  Size:                  5.8 KiB (6026 bytes)
+  Last modified:         2026-06-20 13:31:54.767438980 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 16460673
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               639914ffb018a22aab9ee3bda821c13314842a4fbd530536be775ab0365ff604
-  Last git commit:       2e37e2d 2026-06-20 13:21:36 -0400 add claude response
+  SHA-256:               250e2c4071c770dfc11394ad17ea49fee758414e2971d5c2d28a770f2f68c964
+  Last git commit:       5d158c5 2026-06-20 13:32:03 -0400 add claude response
 
 --- CONTENT ---
 # ─────────────────────────────────────────────────────────────────────────────
@@ -6696,7 +6697,7 @@ toolchainVersion=21
 # ─────────────────────────────────────────────────────────────────────────────
 [versions]
 # Build toolchain ----------------------------------------------------------------
-agp = "9.2.1"                 # Android Gradle Plugin (8.x line; supports compileSdk 36)
+agp = "9.2.1"                  # Android Gradle Plugin
 kotlin = "2.4.0"               # Kotlin (K2). Compose-compiler & serialization plugins track this exact version.
 ksp = "2.3.9"                  # KSP2 — decoupled versioning; 2.3.9 supports Kotlin 2.2+ (incl. 2.4.0)
 
@@ -7551,9 +7552,9 @@ include(":app")
 # DUMP SUMMARY
 ################################################################################
   Files dumped   : 82
-  Total size     : 254.7 KiB (260821 bytes)
+  Total size     : 254.7 KiB (260861 bytes)
   Output file    : /home/kushal/src/kotlin/myweather/docs/llm/dump.txt
-  Completed at   : 2026-06-20T13:25:22-04:00
+  Completed at   : 2026-06-20T13:32:14-04:00
 ################################################################################
 # END OF DUMP
 ################################################################################
