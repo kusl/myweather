@@ -29,6 +29,7 @@ class LocationProvider(private val context: Context) : LocationSource {
             ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) ==
             PackageManager.PERMISSION_GRANTED
 
+    @Suppress("MissingPermission") // hasPermission() is checked at the top.
     override suspend fun currentLocation(): LocationResult {
         if (!hasPermission()) return LocationResult.PermissionDenied
         val manager = locationManager ?: return LocationResult.Unavailable

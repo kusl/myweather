@@ -1,4 +1,3 @@
-kushal@fedora:~/src/kotlin/myweather$ cat fix.sh; time bash fix.sh 
 #!/usr/bin/env bash
 #
 # fix-myweather.sh — applies the mechanical fixes for kusl/myweather:
@@ -73,20 +72,3 @@ echo "  git diff                       # review the changes"
 echo "  git add -A"
 echo "  git commit -m 'deps: apply Dependabot bumps; fix lint MissingPermission; drop stray files'"
 echo "  git push"
-==> Gradle version bumps  (gradle/libs.versions.toml)
-==> GitHub Actions bumps  (.github/workflows/*.yml)
-==> Lint fix  (LocationProvider.kt)
-    added @Suppress to currentLocation()
-==> Removing stray duplicates left over from the folder move
-==> Hardening .gitignore
-
-Done. Now:
-  git diff                       # review the changes
-  git add -A
-  git commit -m 'deps: apply Dependabot bumps; fix lint MissingPermission; drop stray files'
-  git push
-
-real	0m0.019s
-user	0m0.003s
-sys	0m0.007s
-kushal@fedora:~/src/kotlin/myweather$ 
