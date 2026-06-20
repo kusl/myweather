@@ -23,7 +23,7 @@ datastore = "1.1.7"
 room = "2.8.4"                 # Room 2.x (maintenance line); Kotlin-codegen via KSP
 
 # Kotlinx ------------------------------------------------------------------------
-coroutines = "1.10.2"
+coroutines = "1.11.0"
 serializationJson = "1.8.0"
 
 # Networking ---------------------------------------------------------------------
