@@ -1,4 +1,4 @@
-kushal@fedora:~/src/kotlin/myweather$ cd ~/src/kotlin/myweather/; time bash export.sh
+kushal@fedora:~/Music/podcast-audio$ cd ~/src/kotlin/myweather/; time bash export.sh
 ################################################################################
 #                                                                              #
 #   REPOSITORY CONTEXT DUMP                                                    #
@@ -8,7 +8,7 @@ kushal@fedora:~/src/kotlin/myweather$ cd ~/src/kotlin/myweather/; time bash expo
 
 DUMP METADATA
 ═════════════════════════════════════════════════════════════════════════════════
-  Generated at   : 2026-06-20T14:14:22-04:00
+  Generated at   : 2026-06-21T00:13:37-04:00
   Generator      : export.sh
   Host           : fedora
   User           : kushal
@@ -18,17 +18,17 @@ REPOSITORY METADATA
 ═════════════════════════════════════════════════════════════════════════════════
   Repository root: /home/kushal/src/kotlin/myweather
   Branch         : main
-  Commit (full)  : 62e1bcd9007615e0a2bfba8e955ce090a9be0bd7
-  Commit (short) : 62e1bcd
-  Commit date    : 2026-06-20 13:52:03 -0400
-  Commit message : run dump
+  Commit (full)  : d9a1b28cb7a7546e601fead1887c9ebdf94ca79e
+  Commit (short) : d9a1b28
+  Commit date    : 2026-06-21 00:12:13 -0400
+  Commit message : add claude changes
   Remote origin  : git@github.com:kusl/myweather.git
-  Files included : 81
+  Files included : 82
   Excluded path  : docs/llm/
 
 GIT WORKING TREE STATUS (first 20 lines)
 ═════════════════════════════════════════════════════════════════════════════════
- M docs/llm/vendor/claude-conversations.md
+  (clean — no uncommitted changes)
 
 ################################################################################
 # FILE: export.sh  [THIS SCRIPT — included for full context]
@@ -396,7 +396,7 @@ FOOTER
 mv -f "$TMP_FILE" "$OUTPUT_FILE"
 
 ################################################################################
-# FILE TREE  (all 81 included files)
+# FILE TREE  (all 82 included files)
 ################################################################################
 .
 .
@@ -423,6 +423,7 @@ mv -f "$TMP_FILE" "$OUTPUT_FILE"
 │       │   │               │   ├── GeoPoint.kt
 │       │   │               │   ├── GridMath.kt
 │       │   │               │   ├── GridPoint.kt
+│       │   │               │   ├── Telemetry.kt
 │       │   │               │   └── TimeSource.kt
 │       │   │               ├── data
 │       │   │               │   ├── local
@@ -1234,6 +1235,110 @@ data class GridPoint(val gridId: String, val gridX: Int, val gridY: Int) {
 
 
 ################################################################################
+# FILE: app/src/main/java/com/kusl/myweather/core/Telemetry.kt
+################################################################################
+
+--- METADATA ---
+  File name:             Telemetry.kt
+  Relative path:         app/src/main/java/com/kusl/myweather/core/Telemetry.kt
+  Absolute path:         /home/kushal/src/kotlin/myweather/app/src/main/java/com/kusl/myweather/core/Telemetry.kt
+  Size:                  3.2 KiB (3318 bytes)
+  Last modified:         2026-06-21 00:10:28.883017039 -0400
+  Permissions:           -rw-r--r--
+  Owner:                 kushal:kushal
+  Inode:                 16482174
+  Hard links:            1
+  MIME type:             text/plain
+  SHA-256:               946275bd60e85c4956b5d0db54bd401421e40053010f39b67e342aecf0eb57ed
+  Last git commit:       d9a1b28 2026-06-21 00:12:13 -0400 add claude changes
+
+--- CONTENT ---
+package com.kusl.myweather.core
+
+import android.util.Log
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+
+/**
+ * Tiny, dependency-free, in-process telemetry. It does two things and only two:
+ *
+ *  1. Mirrors every event to Logcat via [android.util.Log] (so `adb logcat -s MyWeather`
+ *     shows the app's breadcrumbs during development).
+ *  2. Retains the most recent [CAPACITY] events in a ring buffer in memory and
+ *     publishes them as a [StateFlow] so they can be shown in-app
+ *     (Settings → Diagnostics).
+ *
+ * Crucially, this is **local-only telemetry**: there is no network sink, no
+ * analytics SDK, no Google dependency, and nothing is ever written to disk or
+ * sent off the device — in keeping with the project's privacy-first, serverless
+ * ethos. It exists purely so the app (and its user) can answer "what just
+ * happened?" when something like a slow location fix or a failed request occurs.
+ *
+ * Thread-safe: the buffer is guarded by a monitor and the public view is an
+ * immutable snapshot republished on every change. The Logcat calls are safe in
+ * JVM unit tests because the module enables
+ * `testOptions.unitTests.isReturnDefaultValues`, so the android.jar stubs no-op
+ * instead of throwing.
+ */
+object Telemetry {
+
+    enum class Level { DEBUG, INFO, WARN, ERROR }
+
+    data class Entry(
+        val epochMs: Long,
+        val level: Level,
+        val tag: String,
+        val message: String,
+    )
+
+    /** Most recent events first is computed at read sites; storage is oldest-first. */
+    private const val CAPACITY = 200
+    private const val LOG_TAG = "MyWeather"
+
+    private val lock = Any()
+    private val buffer = ArrayDeque<Entry>(CAPACITY)
+
+    private val _entries = MutableStateFlow<List<Entry>>(emptyList())
+
+    /** Oldest-first snapshot of the retained events. */
+    val entries: StateFlow<List<Entry>> = _entries.asStateFlow()
+
+    fun d(tag: String, message: String) = record(Level.DEBUG, tag, message, null)
+    fun i(tag: String, message: String) = record(Level.INFO, tag, message, null)
+    fun w(tag: String, message: String) = record(Level.WARN, tag, message, null)
+    fun e(tag: String, message: String, throwable: Throwable? = null) =
+        record(Level.ERROR, tag, message, throwable)
+
+    /** Wipe the in-memory buffer (e.g. the Diagnostics "Clear" action). */
+    fun clear() {
+        synchronized(lock) {
+            buffer.clear()
+            _entries.value = emptyList()
+        }
+    }
+
+    private fun record(level: Level, tag: String, message: String, throwable: Throwable?) {
+        val line = "[$tag] $message"
+        when (level) {
+            Level.DEBUG -> Log.d(LOG_TAG, line)
+            Level.INFO -> Log.i(LOG_TAG, line)
+            Level.WARN -> Log.w(LOG_TAG, line)
+            Level.ERROR -> if (throwable != null) Log.e(LOG_TAG, line, throwable) else Log.e(LOG_TAG, line)
+        }
+
+        val text = if (throwable != null) "$message — ${throwable.message}" else message
+        val entry = Entry(System.currentTimeMillis(), level, tag, text)
+        synchronized(lock) {
+            while (buffer.size >= CAPACITY) buffer.removeFirst()
+            buffer.addLast(entry)
+            _entries.value = buffer.toList()
+        }
+    }
+}
+
+
+################################################################################
 # FILE: app/src/main/java/com/kusl/myweather/core/TimeSource.kt
 ################################################################################
 
@@ -1466,15 +1571,15 @@ abstract class WeatherDatabase : RoomDatabase() {
   File name:             LocationProvider.kt
   Relative path:         app/src/main/java/com/kusl/myweather/data/location/LocationProvider.kt
   Absolute path:         /home/kushal/src/kotlin/myweather/app/src/main/java/com/kusl/myweather/data/location/LocationProvider.kt
-  Size:                  3.4 KiB (3558 bytes)
-  Last modified:         2026-06-20 13:21:00.610624013 -0400
+  Size:                  4.9 KiB (5039 bytes)
+  Last modified:         2026-06-21 00:09:41.809460823 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 16460677
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               eeec4f35b518ddba110657d272bda209247f41cb6a3d33ce640ed1ff4186e729
-  Last git commit:       2e37e2d 2026-06-20 13:21:36 -0400 add claude response
+  SHA-256:               1e00b99db41bb25807fbea5c8d1dcd75f732f27beb1ef64ad96a3ce6f1255e5d
+  Last git commit:       d9a1b28 2026-06-21 00:12:13 -0400 add claude changes
 
 --- CONTENT ---
 package com.kusl.myweather.data.location
@@ -1486,7 +1591,9 @@ import android.location.LocationManager
 import android.os.CancellationSignal
 import androidx.core.content.ContextCompat
 import com.kusl.myweather.core.GeoPoint
+import com.kusl.myweather.core.Telemetry
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.coroutines.resume
 
 /**
@@ -1496,6 +1603,11 @@ import kotlin.coroutines.resume
  *
  * Returns a typed [LocationResult]; it never throws for the "no permission" or
  * "no fix" cases, so callers always have a clean fallback to manual entry.
+ *
+ * A fresh fix is bounded by [FIX_TIMEOUT_MS]: if the provider can't deliver one
+ * in time (common on a cold start or indoors), we fall back to the last known
+ * location and finally to [LocationResult.Unavailable], rather than leaving the
+ * caller — and the on-screen spinner — waiting indefinitely.
  */
 class LocationProvider(private val context: Context) : LocationSource {
 
@@ -1510,20 +1622,43 @@ class LocationProvider(private val context: Context) : LocationSource {
 
     @Suppress("MissingPermission") // hasPermission() is checked at the top.
     override suspend fun currentLocation(): LocationResult {
-        if (!hasPermission()) return LocationResult.PermissionDenied
-        val manager = locationManager ?: return LocationResult.Unavailable
-        if (!manager.isLocationEnabled) return LocationResult.Unavailable
+        if (!hasPermission()) {
+            Telemetry.w("Location", "no permission")
+            return LocationResult.PermissionDenied
+        }
+        val manager = locationManager
+        if (manager == null) {
+            Telemetry.w("Location", "no LocationManager")
+            return LocationResult.Unavailable
+        }
+        if (!manager.isLocationEnabled) {
+            Telemetry.w("Location", "location services disabled")
+            return LocationResult.Unavailable
+        }
 
-        val provider = bestProvider(manager) ?: return LocationResult.Unavailable
+        val provider = bestProvider(manager)
+        if (provider == null) {
+            Telemetry.w("Location", "no enabled provider")
+            return LocationResult.Unavailable
+        }
+        Telemetry.i("Location", "requesting fix via $provider")
 
-        // Try a fresh single fix first (API 30+), then fall back to last-known.
-        val fresh = requestSingleFix(manager, provider)
-        if (fresh != null) return LocationResult.Available(fresh)
+        // Try a fresh single fix first (API 30+), bounded by a timeout; then
+        // fall back to last-known so we don't hang on a cold/indoor start.
+        val fresh = withTimeoutOrNull(FIX_TIMEOUT_MS) { requestSingleFix(manager, provider) }
+        if (fresh != null) {
+            Telemetry.i("Location", "fresh fix ${fresh.toApiString()}")
+            return LocationResult.Available(fresh)
+        }
+        Telemetry.w("Location", "no fresh fix within ${FIX_TIMEOUT_MS}ms; trying last-known")
 
         val last = runCatching { manager.getLastKnownLocation(provider) }.getOrNull()
         return if (last != null && GeoPoint.isValid(last.latitude, last.longitude)) {
-            LocationResult.Available(GeoPoint(last.latitude, last.longitude))
+            val point = GeoPoint(last.latitude, last.longitude)
+            Telemetry.i("Location", "last-known ${point.toApiString()}")
+            LocationResult.Available(point)
         } else {
+            Telemetry.w("Location", "no location available")
             LocationResult.Unavailable
         }
     }
@@ -1556,6 +1691,11 @@ class LocationProvider(private val context: Context) : LocationSource {
         }.onFailure {
             if (cont.isActive) cont.resume(null)
         }
+    }
+
+    private companion object {
+        /** Upper bound on how long we wait for a fresh single fix before falling back. */
+        const val FIX_TIMEOUT_MS = 10_000L
     }
 }
 
@@ -2240,24 +2380,24 @@ interface SettingsRepository {
   File name:             WeatherRepositoryImpl.kt
   Relative path:         app/src/main/java/com/kusl/myweather/data/WeatherRepositoryImpl.kt
   Absolute path:         /home/kushal/src/kotlin/myweather/app/src/main/java/com/kusl/myweather/data/WeatherRepositoryImpl.kt
-  Size:                  11.6 KiB (11946 bytes)
-  Last modified:         2026-06-20 04:59:53.000000000 -0400
+  Size:                  13.1 KiB (13508 bytes)
+  Last modified:         2026-06-21 00:08:15.991539339 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 16257569
   Hard links:            1
   MIME type:             text/x-c
-  SHA-256:               4416461adb78f36fa0d435065b62d56bcdb3989a5b8dbeb9c37a06c61f1d8b4f
-  Last git commit:       0386d8e 2026-06-20 08:06:03 -0400 move one folder up
+  SHA-256:               2b59a51ecd724cecf08b9ef56c22698a528d9de5b60940bc86e80250b240bba3
+  Last git commit:       d9a1b28 2026-06-21 00:12:13 -0400 add claude changes
 
 --- CONTENT ---
 package com.kusl.myweather.data
 
-import android.util.Log
 import com.kusl.myweather.core.GeoPoint
 import com.kusl.myweather.core.GridMath
 import com.kusl.myweather.core.GridPoint
 import com.kusl.myweather.core.SystemTimeSource
+import com.kusl.myweather.core.Telemetry
 import com.kusl.myweather.core.TimeSource
 import com.kusl.myweather.data.local.dao.ForecastCacheDao
 import com.kusl.myweather.data.local.dao.PointMetadataDao
@@ -2298,61 +2438,116 @@ class WeatherRepositoryImpl(
 
     override suspend fun getAreaWeather(point: GeoPoint, radius: Int): AreaWeatherResult {
         val coord = point.rounded()
+        Telemetry.i("WeatherRepository", "area for ${coord.toApiString()} r=$radius")
 
         return when (val meta = resolveMetadata(coord)) {
             is MetaResult.NoCoverage -> AreaWeatherResult.NoCoverage
             is MetaResult.Unavailable ->
                 AreaWeatherResult.Unavailable("Couldn't reach the weather service. Check your connection and try again.")
-            is MetaResult.Ok -> {
-                val primary = when (val p = fetchForecast(meta.metadata.grid)) {
-                    is ForecastResult.Ok -> p
-                    ForecastResult.Unavailable ->
-                        return AreaWeatherResult.Unavailable("The forecast didn't load. Check your connection and try again.")
-                }
-
-                // Assemble the surrounding ring, cache-aside, with bounded
-                // concurrency so even a cold area can't stampede NWS.
-                val neighborGrids = GridMath.surrounding(meta.metadata.grid, radius)
-                val semaphore = Semaphore(NEIGHBOR_CONCURRENCY)
-                val neighborTiles = coroutineScope {
-                    neighborGrids.map { grid ->
-                        async {
-                            val r = semaphore.withPermit { fetchForecast(grid) }
-                            (r as? ForecastResult.Ok)?.let {
-                                WeatherTile(
-                                    grid = grid,
-                                    forecast = it.forecast,
-                                    isPrimary = false,
-                                    distanceMeters = approxMeters(meta.metadata.grid, grid),
-                                )
-                            }
-                        }
-                    }.awaitAll().filterNotNull()
-                }.sortedBy { it.distanceMeters ?: Double.MAX_VALUE }
-
-                val primaryTile = WeatherTile(
-                    grid = meta.metadata.grid,
-                    forecast = primary.forecast,
-                    isPrimary = true,
-                    distanceMeters = 0.0,
-                )
-
-                // Bound DB growth without discarding our offline fallback: only
-                // drop entries that expired more than a week ago.
-                runCatching { forecastDao.deleteExpiredBefore(time.nowMs() - STALE_RETENTION_MS) }
-
-                val fromCache = meta.stale || primary.stale
-                AreaWeatherResult.Success(
-                    AreaWeather(
-                        query = coord,
-                        metadata = meta.metadata,
-                        primary = primary.forecast,
-                        tiles = listOf(primaryTile) + neighborTiles,
-                        fromCache = fromCache,
-                    ),
-                )
-            }
+            is MetaResult.Ok -> buildArea(
+                center = meta.metadata.grid,
+                radius = radius,
+                metadata = meta.metadata,
+                query = coord,
+                metaStale = meta.stale,
+            )
         }
+    }
+
+    override suspend fun getAreaWeatherForGrid(
+        center: GridPoint,
+        radius: Int,
+        label: String?,
+        timeZone: String?,
+    ): AreaWeatherResult {
+        Telemetry.i("WeatherRepository", "recenter on $center r=$radius")
+        // We already know the grid, so no /points lookup is needed. Synthesize
+        // metadata for this cell, reusing the office time-zone we resolved earlier.
+        val metadata = PointMetadata(
+            queryLatitude = 0.0,
+            queryLongitude = 0.0,
+            gridId = center.gridId,
+            gridX = center.gridX,
+            gridY = center.gridY,
+            city = label,
+            state = null,
+            timeZone = timeZone,
+        )
+        // No metadata staleness applies here; freshness is governed entirely by
+        // the per-cell forecast cache.
+        return buildArea(
+            center = center,
+            radius = radius,
+            metadata = metadata,
+            query = metadata.query,
+            metaStale = false,
+        )
+    }
+
+    /**
+     * Fetch the [center] cell's forecast plus its surrounding [radius] ring
+     * (cache-aside, bounded concurrency) and assemble them into an [AreaWeather].
+     * Shared by the coordinate path ([getAreaWeather]) and the grid-recenter path
+     * ([getAreaWeatherForGrid]).
+     */
+    private suspend fun buildArea(
+        center: GridPoint,
+        radius: Int,
+        metadata: PointMetadata,
+        query: GeoPoint,
+        metaStale: Boolean,
+    ): AreaWeatherResult {
+        val primary = when (val p = fetchForecast(center)) {
+            is ForecastResult.Ok -> p
+            ForecastResult.Unavailable ->
+                return AreaWeatherResult.Unavailable("The forecast didn't load. Check your connection and try again.")
+        }
+
+        // Assemble the surrounding ring, cache-aside, with bounded concurrency so
+        // even a cold area can't stampede NWS.
+        val neighborGrids = GridMath.surrounding(center, radius)
+        val semaphore = Semaphore(NEIGHBOR_CONCURRENCY)
+        val neighborTiles = coroutineScope {
+            neighborGrids.map { grid ->
+                async {
+                    val r = semaphore.withPermit { fetchForecast(grid) }
+                    (r as? ForecastResult.Ok)?.let {
+                        WeatherTile(
+                            grid = grid,
+                            forecast = it.forecast,
+                            isPrimary = false,
+                            distanceMeters = approxMeters(center, grid),
+                        )
+                    }
+                }
+            }.awaitAll().filterNotNull()
+        }.sortedBy { it.distanceMeters ?: Double.MAX_VALUE }
+
+        val primaryTile = WeatherTile(
+            grid = center,
+            forecast = primary.forecast,
+            isPrimary = true,
+            distanceMeters = 0.0,
+        )
+
+        // Bound DB growth without discarding our offline fallback: only drop
+        // entries that expired more than a week ago.
+        runCatching { forecastDao.deleteExpiredBefore(time.nowMs() - STALE_RETENTION_MS) }
+
+        val fromCache = metaStale || primary.stale
+        Telemetry.i(
+            "WeatherRepository",
+            "assembled $center tiles=${neighborTiles.size + 1} cache=$fromCache",
+        )
+        return AreaWeatherResult.Success(
+            AreaWeather(
+                query = query,
+                metadata = metadata,
+                primary = primary.forecast,
+                tiles = listOf(primaryTile) + neighborTiles,
+                fromCache = fromCache,
+            ),
+        )
     }
 
     // ── metadata (long-lived) ─────────────────────────────────────────────────
@@ -2446,7 +2641,7 @@ class WeatherRepositoryImpl(
             // serve a stale copy if we have one, otherwise report unavailable.
             else -> {
                 if (response.code() !in intArrayOf(404, 304)) {
-                    Log.w(TAG, "NWS forecast for $grid returned HTTP ${response.code()}")
+                    Telemetry.w("WeatherRepository", "NWS forecast for $grid returned HTTP ${response.code()}")
                 }
                 cached?.let { ForecastResult.Ok(it.decodeForecast(), stale = true) } ?: ForecastResult.Unavailable
             }
@@ -2464,8 +2659,6 @@ class WeatherRepositoryImpl(
     }
 
     companion object {
-        private const val TAG = "WeatherRepository"
-
         // Nominal NWS cell size (~2.5 km), used only to order/label neighbours.
         private const val NOMINAL_CELL_METERS = 2_500.0
         private const val NEIGHBOR_CONCURRENCY = 4
@@ -2763,20 +2956,21 @@ data class SavedLocation(
   File name:             WeatherRepository.kt
   Relative path:         app/src/main/java/com/kusl/myweather/domain/WeatherRepository.kt
   Absolute path:         /home/kushal/src/kotlin/myweather/app/src/main/java/com/kusl/myweather/domain/WeatherRepository.kt
-  Size:                  1.0 KiB (1040 bytes)
-  Last modified:         2026-06-19 16:54:35.000000000 -0400
+  Size:                  1.6 KiB (1729 bytes)
+  Last modified:         2026-06-21 00:07:56.031397489 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 16257584
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               3f7708e49f0970c7c2cb3db78551fbb5011740376c67f714ac0f5d3b9f53bf9b
-  Last git commit:       0386d8e 2026-06-20 08:06:03 -0400 move one folder up
+  SHA-256:               8c0498671e93735d2d979a9f3d1f34b16526e826c3bc8e6081476fc97ecf1b6b
+  Last git commit:       d9a1b28 2026-06-21 00:12:13 -0400 add claude changes
 
 --- CONTENT ---
 package com.kusl.myweather.domain
 
 import com.kusl.myweather.core.GeoPoint
+import com.kusl.myweather.core.GridPoint
 import com.kusl.myweather.domain.model.AreaWeather
 
 /** The outcome of an area-weather request, modelled so the UI can react cleanly. */
@@ -2798,6 +2992,22 @@ interface WeatherRepository {
      * cache-aside throughout, serving stale data when the network is down.
      */
     suspend fun getAreaWeather(point: GeoPoint, radius: Int): AreaWeatherResult
+
+    /**
+     * Re-centre the neighborhood directly on an explicit grid [center] — e.g.
+     * when the user taps a neighbouring tile to make it the new middle cell.
+     *
+     * This skips the `/points` coordinate lookup (we already know the grid) and
+     * reuses the [timeZone] resolved for the current area. [label] becomes the
+     * card's display name (there's no city for an arbitrary cell). Forecasts are
+     * fetched cache-aside, exactly like [getAreaWeather].
+     */
+    suspend fun getAreaWeatherForGrid(
+        center: GridPoint,
+        radius: Int,
+        label: String?,
+        timeZone: String?,
+    ): AreaWeatherResult
 }
 
 
@@ -2860,26 +3070,31 @@ class MainActivity : ComponentActivity() {
   File name:             MyWeatherApp.kt
   Relative path:         app/src/main/java/com/kusl/myweather/MyWeatherApp.kt
   Absolute path:         /home/kushal/src/kotlin/myweather/app/src/main/java/com/kusl/myweather/MyWeatherApp.kt
-  Size:                  516 B (516 bytes)
-  Last modified:         2026-06-19 16:55:14.000000000 -0400
+  Size:                  758 B (758 bytes)
+  Last modified:         2026-06-21 00:10:41.320345489 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 16257577
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               ea88f29edaa31ad44329bbeb8f1ed9613046451130c27d96ebd87b8cb4b4a27c
-  Last git commit:       0386d8e 2026-06-20 08:06:03 -0400 move one folder up
+  SHA-256:               b0f287b726ccfdd3dfccb00c1acc598f5c8963d49507cb077389c2b22d0762a1
+  Last git commit:       d9a1b28 2026-06-21 00:12:13 -0400 add claude changes
 
 --- CONTENT ---
 package com.kusl.myweather
 
 import android.app.Application
+import com.kusl.myweather.core.Telemetry
 import com.kusl.myweather.di.AppContainer
 
 /**
  * Application entry point. Owns the manual DI [AppContainer] for the process
- * lifetime. No analytics, crash reporting, or third-party initialisers run here
- * — the app is fully local and serverless.
+ * lifetime.
+ *
+ * The app remains fully local and serverless: no analytics, no crash reporting,
+ * and no third-party initialisers run here. The only "telemetry" is
+ * [Telemetry] — an in-memory breadcrumb log mirrored to Logcat that never
+ * leaves the device (see its KDoc).
  */
 class MyWeatherApp : Application() {
     lateinit var container: AppContainer
@@ -2888,6 +3103,7 @@ class MyWeatherApp : Application() {
     override fun onCreate() {
         super.onCreate()
         container = AppContainer(this)
+        Telemetry.i("App", "MyWeather started")
     }
 }
 
@@ -3130,20 +3346,21 @@ fun UpcomingPeriods(
   File name:             TileGrid.kt
   Relative path:         app/src/main/java/com/kusl/myweather/ui/components/TileGrid.kt
   Absolute path:         /home/kushal/src/kotlin/myweather/app/src/main/java/com/kusl/myweather/ui/components/TileGrid.kt
-  Size:                  4.4 KiB (4564 bytes)
-  Last modified:         2026-06-19 17:00:38.000000000 -0400
+  Size:                  5.5 KiB (5656 bytes)
+  Last modified:         2026-06-21 00:09:07.175950478 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 16257533
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               241530a1dde4efee237deac6f7c38cfd55c211538ada39817b9f491865fa1e8d
-  Last git commit:       0386d8e 2026-06-20 08:06:03 -0400 move one folder up
+  SHA-256:               3e831a48336b762e2f91b02e3bada70a2faa162a1dfc62b99f546a169cd5fd0c
+  Last git commit:       d9a1b28 2026-06-21 00:12:13 -0400 add claude changes
 
 --- CONTENT ---
 package com.kusl.myweather.ui.components
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -3169,11 +3386,16 @@ import com.kusl.myweather.domain.model.WeatherTile
  * NWS grid X/Y (north-up), so the layout mirrors real geography; the user's own
  * cell is highlighted. Cells with no fetched forecast render as muted blanks so
  * the grid stays aligned.
+ *
+ * Tapping a neighbouring cell invokes [onTileSelected] — the dashboard uses this
+ * to re-centre the matrix on that cell. The primary (centre) cell and empty
+ * cells are not interactive.
  */
 @Composable
 fun TileGrid(
     tiles: List<WeatherTile>,
     modifier: Modifier = Modifier,
+    onTileSelected: (WeatherTile) -> Unit = {},
 ) {
     if (tiles.isEmpty()) return
 
@@ -3189,6 +3411,12 @@ fun TileGrid(
             style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.padding(start = 4.dp, bottom = 8.dp),
         )
+        Text(
+            "Tap a surrounding cell to centre on it.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(start = 4.dp, bottom = 8.dp),
+        )
         // Rows from north (max Y) down to south (min Y).
         for (y in maxY downTo minY) {
             Row(
@@ -3197,7 +3425,11 @@ fun TileGrid(
             ) {
                 for (x in minX..maxX) {
                     val tile = byCoord[x to y]
-                    TileCell(tile = tile, modifier = Modifier.weight(1f))
+                    // Only filled, non-primary cells are tappable.
+                    val onClick: (() -> Unit)? =
+                        tile?.takeIf { it.forecast?.current != null && !it.isPrimary }
+                            ?.let { t -> { onTileSelected(t) } }
+                    TileCell(tile = tile, onClick = onClick, modifier = Modifier.weight(1f))
                 }
             }
         }
@@ -3205,7 +3437,11 @@ fun TileGrid(
 }
 
 @Composable
-private fun TileCell(tile: WeatherTile?, modifier: Modifier = Modifier) {
+private fun TileCell(
+    tile: WeatherTile?,
+    onClick: (() -> Unit)?,
+    modifier: Modifier = Modifier,
+) {
     val period = tile?.forecast?.current
     val isPrimary = tile?.isPrimary == true
 
@@ -3217,7 +3453,7 @@ private fun TileCell(tile: WeatherTile?, modifier: Modifier = Modifier) {
         ) {
             Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                 Text(
-                    "—",
+                    "\u2014",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -3233,8 +3469,15 @@ private fun TileCell(tile: WeatherTile?, modifier: Modifier = Modifier) {
         if (isPrimary) MaterialTheme.colorScheme.onTertiaryContainer
         else MaterialTheme.colorScheme.onSecondaryContainer
 
+    val cellModifier =
+        if (onClick != null) {
+            modifier.aspectRatio(1f).clickable(onClickLabel = "Center on this cell") { onClick() }
+        } else {
+            modifier.aspectRatio(1f)
+        }
+
     Card(
-        modifier = modifier.aspectRatio(1f),
+        modifier = cellModifier,
         colors = CardDefaults.cardColors(containerColor = container),
         border = if (isPrimary) BorderStroke(2.dp, MaterialTheme.colorScheme.tertiary) else null,
     ) {
@@ -3276,20 +3519,21 @@ private fun TileCell(tile: WeatherTile?, modifier: Modifier = Modifier) {
   File name:             DashboardScreen.kt
   Relative path:         app/src/main/java/com/kusl/myweather/ui/dashboard/DashboardScreen.kt
   Absolute path:         /home/kushal/src/kotlin/myweather/app/src/main/java/com/kusl/myweather/ui/dashboard/DashboardScreen.kt
-  Size:                  7.6 KiB (7884 bytes)
-  Last modified:         2026-06-19 17:01:15.000000000 -0400
+  Size:                  9.0 KiB (9232 bytes)
+  Last modified:         2026-06-21 00:08:47.962984141 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 16257549
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               b03ce62adb3b2b71863550c350861bb586e8484225aefc89be97cd1000484ae7
-  Last git commit:       0386d8e 2026-06-20 08:06:03 -0400 move one folder up
+  SHA-256:               e2d569faf3e2e761285d067a743a3cd1b5e0494cdf5ea838b19293be1ae08537
+  Last git commit:       d9a1b28 2026-06-21 00:12:13 -0400 add claude changes
 
 --- CONTENT ---
 package com.kusl.myweather.ui.dashboard
 
 import android.Manifest
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -3311,6 +3555,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -3318,6 +3563,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -3327,6 +3573,7 @@ import com.kusl.myweather.ui.AppIcons
 import com.kusl.myweather.ui.components.ForecastCard
 import com.kusl.myweather.ui.components.TileGrid
 import com.kusl.myweather.ui.components.UpcomingPeriods
+import kotlinx.coroutines.flow.collect
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -3337,11 +3584,21 @@ fun DashboardScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var manualText by rememberSaveable { mutableStateOf("") }
+    val context = LocalContext.current
 
     // When navigated here with explicit coords (e.g. from a saved location), load them.
-    androidx.compose.runtime.LaunchedEffect(presetLat, presetLon) {
+    LaunchedEffect(presetLat, presetLon) {
         if (presetLat != null && presetLon != null) {
             viewModel.load(com.kusl.myweather.core.GeoPoint(presetLat, presetLon))
+        }
+    }
+
+    // Surface transient one-shot signals (work started / succeeded / failed) as toasts.
+    LaunchedEffect(Unit) {
+        viewModel.events.collect { event ->
+            when (event) {
+                is DashboardEvent.Message -> Toast.makeText(context, event.text, Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -3376,6 +3633,7 @@ fun DashboardScreen(
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),
+                    enabled = state.locationStatus != LocationStatus.Requesting && !state.isLoading,
                 ) {
                     Icon(AppIcons.LocationOn, contentDescription = null)
                     Text(
@@ -3403,6 +3661,12 @@ fun DashboardScreen(
                 }
             }
 
+            // Progress: getting a device fix can take a while on a cold start, so
+            // show feedback immediately rather than leaving the screen looking idle.
+            if (state.locationStatus == LocationStatus.Requesting) {
+                item { LoadingRow("Finding your location\u2026") }
+            }
+
             // Status / banners
             when (state.locationStatus) {
                 LocationStatus.PermissionDenied -> item {
@@ -3419,12 +3683,7 @@ fun DashboardScreen(
             }
 
             if (state.isLoading) {
-                item {
-                    Row(
-                        Modifier.fillMaxWidth().padding(24.dp),
-                        horizontalArrangement = Arrangement.Center,
-                    ) { CircularProgressIndicator() }
-                }
+                item { LoadingRow("Loading forecast\u2026") }
             }
 
             state.message?.let { msg ->
@@ -3434,9 +3693,17 @@ fun DashboardScreen(
             val area = state.area
             if (area != null) {
                 item { ForecastCard(metadata = area.metadata, forecast = area.primary) }
-                item { TileGrid(tiles = area.tiles) }
+                item {
+                    TileGrid(
+                        tiles = area.tiles,
+                        onTileSelected = { viewModel.recenterOnGrid(it.grid) },
+                    )
+                }
                 item { UpcomingPeriods(periods = area.primary.periods) }
-            } else if (!state.isLoading && state.message == null) {
+            } else if (!state.isLoading &&
+                state.message == null &&
+                state.locationStatus != LocationStatus.Requesting
+            ) {
                 item {
                     Text(
                         "Use your location or enter coordinates to load a U.S. forecast.",
@@ -3448,6 +3715,18 @@ fun DashboardScreen(
 
             item { Column(Modifier.padding(bottom = 8.dp)) {} }
         }
+    }
+}
+
+@Composable
+private fun LoadingRow(text: String) {
+    Row(
+        Modifier.fillMaxWidth().padding(vertical = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        CircularProgressIndicator()
+        Text(text, style = MaterialTheme.typography.bodyMedium)
     }
 }
 
@@ -3502,15 +3781,15 @@ private fun WarningBanner(text: String) {
   File name:             DashboardUiState.kt
   Relative path:         app/src/main/java/com/kusl/myweather/ui/dashboard/DashboardUiState.kt
   Absolute path:         /home/kushal/src/kotlin/myweather/app/src/main/java/com/kusl/myweather/ui/dashboard/DashboardUiState.kt
-  Size:                  769 B (769 bytes)
-  Last modified:         2026-06-19 16:56:51.000000000 -0400
+  Size:                  1.0 KiB (1103 bytes)
+  Last modified:         2026-06-21 00:09:24.271683419 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 16257547
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               48ffe98c35829ada4727a043c0cd001707ec6048bf2a554119491974a4984856
-  Last git commit:       0386d8e 2026-06-20 08:06:03 -0400 move one folder up
+  SHA-256:               4a8562167ec6ec368b1c3e0085c0626870731ccab3b53f3e6b51d3d535a78ac0
+  Last git commit:       d9a1b28 2026-06-21 00:12:13 -0400 add claude changes
 
 --- CONTENT ---
 package com.kusl.myweather.ui.dashboard
@@ -3534,6 +3813,15 @@ data class DashboardUiState(
     val hasData: Boolean get() = area != null
 }
 
+/**
+ * One-shot, transient signals from the ViewModel that should be shown as a Toast
+ * (or similar) exactly once — as opposed to [DashboardUiState], which is the
+ * durable screen state. Collected by the screen and never replayed.
+ */
+sealed interface DashboardEvent {
+    data class Message(val text: String) : DashboardEvent
+}
+
 
 ################################################################################
 # FILE: app/src/main/java/com/kusl/myweather/ui/dashboard/DashboardViewModel.kt
@@ -3543,15 +3831,15 @@ data class DashboardUiState(
   File name:             DashboardViewModel.kt
   Relative path:         app/src/main/java/com/kusl/myweather/ui/dashboard/DashboardViewModel.kt
   Absolute path:         /home/kushal/src/kotlin/myweather/app/src/main/java/com/kusl/myweather/ui/dashboard/DashboardViewModel.kt
-  Size:                  3.6 KiB (3741 bytes)
-  Last modified:         2026-06-19 17:03:22.000000000 -0400
+  Size:                  7.9 KiB (8149 bytes)
+  Last modified:         2026-06-21 00:08:36.007642958 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 16257548
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               47e275ac8a769f7aedd38644fcbe7aefd334a5311895e5f92c2169a013ce8007
-  Last git commit:       0386d8e 2026-06-20 08:06:03 -0400 move one folder up
+  SHA-256:               9eb0051bf859adb35c8adb81539444eaa38716c0536630b31a0de78b8c640fd0
+  Last git commit:       d9a1b28 2026-06-21 00:12:13 -0400 add claude changes
 
 --- CONTENT ---
 package com.kusl.myweather.ui.dashboard
@@ -3559,13 +3847,19 @@ package com.kusl.myweather.ui.dashboard
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.kusl.myweather.core.GeoPoint
-import com.kusl.myweather.data.location.LocationSource
+import com.kusl.myweather.core.GridPoint
+import com.kusl.myweather.core.Telemetry
 import com.kusl.myweather.data.location.LocationResult
+import com.kusl.myweather.data.location.LocationSource
 import com.kusl.myweather.data.settings.SettingsRepository
 import com.kusl.myweather.domain.AreaWeatherResult
 import com.kusl.myweather.domain.WeatherRepository
+import com.kusl.myweather.domain.model.PointMetadata
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
@@ -3580,10 +3874,25 @@ class DashboardViewModel(
     private val _uiState = MutableStateFlow(DashboardUiState())
     val uiState: StateFlow<DashboardUiState> = _uiState.asStateFlow()
 
+    // One-shot toast signals. extraBufferCapacity lets us emit from non-suspend
+    // code via tryEmit without dropping events to an attached collector.
+    private val _events = MutableSharedFlow<DashboardEvent>(extraBufferCapacity = 16)
+    val events: SharedFlow<DashboardEvent> = _events.asSharedFlow()
+
+    // What the current view is anchored to, so refresh() reloads the right thing:
+    //  - a tapped grid cell (set by recenterOnGrid), or
+    //  - otherwise the coordinate in uiState.query (set by load()).
+    private var anchorGrid: GridPoint? = null
+
+    // Metadata of the currently displayed area; supplies the office time-zone to
+    // the grid-recenter path and lets us ignore a tap on the current centre.
+    private var lastMetadata: PointMetadata? = null
+
     fun hasLocationPermission(): Boolean = locationProvider.hasPermission()
 
     /** Called after the runtime permission was denied by the user. */
     fun onPermissionDenied() {
+        Telemetry.w("Dashboard", "location permission denied by user")
         _uiState.update { it.copy(locationStatus = LocationStatus.PermissionDenied) }
     }
 
@@ -3591,15 +3900,21 @@ class DashboardViewModel(
     fun requestDeviceLocation() {
         viewModelScope.launch {
             _uiState.update { it.copy(locationStatus = LocationStatus.Requesting) }
+            Telemetry.i("Dashboard", "device location requested")
+            toast("Finding your location\u2026")
             when (val result = locationProvider.currentLocation()) {
                 is LocationResult.Available -> {
                     _uiState.update { it.copy(locationStatus = LocationStatus.Idle) }
                     load(result.point)
                 }
-                LocationResult.PermissionDenied ->
+                LocationResult.PermissionDenied -> {
                     _uiState.update { it.copy(locationStatus = LocationStatus.PermissionDenied) }
-                LocationResult.Unavailable ->
+                    toast("Location permission denied")
+                }
+                LocationResult.Unavailable -> {
                     _uiState.update { it.copy(locationStatus = LocationStatus.Unavailable) }
+                    toast("Couldn't get a location fix")
+                }
             }
         }
     }
@@ -3611,6 +3926,7 @@ class DashboardViewModel(
             _uiState.update {
                 it.copy(message = "That doesn't look like a valid \"latitude, longitude\".")
             }
+            toast("Enter coordinates like \"36.85, -76.28\"")
             return
         }
         load(point)
@@ -3618,35 +3934,104 @@ class DashboardViewModel(
 
     fun load(point: GeoPoint) {
         viewModelScope.launch {
+            anchorGrid = null
             _uiState.update {
                 it.copy(isLoading = true, query = point, message = null, locationStatus = LocationStatus.Idle)
             }
+            Telemetry.i("Dashboard", "load ${point.toApiString()}")
             val radius = settingsRepository.neighborhoodRadius.first()
             when (val result = weatherRepository.getAreaWeather(point, radius)) {
-                is AreaWeatherResult.Success -> _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        area = result.area,
-                        offline = result.area.fromCache,
-                        message = null,
-                    )
+                is AreaWeatherResult.Success -> {
+                    lastMetadata = result.area.metadata
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            area = result.area,
+                            offline = result.area.fromCache,
+                            message = null,
+                        )
+                    }
+                    toast(if (result.area.fromCache) OFFLINE_TOAST else "Weather updated")
                 }
-                AreaWeatherResult.NoCoverage -> _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        area = null,
-                        message = "The National Weather Service doesn't cover that spot. The NWS API is for U.S. locations only.",
-                    )
+                AreaWeatherResult.NoCoverage -> {
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            area = null,
+                            message = "The National Weather Service doesn't cover that spot. The NWS API is for U.S. locations only.",
+                        )
+                    }
+                    toast("No NWS coverage there (U.S. only)")
                 }
-                is AreaWeatherResult.Unavailable -> _uiState.update {
-                    it.copy(isLoading = false, message = result.message)
+                is AreaWeatherResult.Unavailable -> {
+                    _uiState.update { it.copy(isLoading = false, message = result.message) }
+                    toast(result.message)
                 }
             }
         }
     }
 
+    /**
+     * Make a tapped neighbouring cell the new centre of the matrix, in one tap.
+     * No-op if we don't have an area yet, or if the tapped cell is already the
+     * centre. The user can always return to a saved location from the Locations
+     * tab, so this re-centring is intentionally ephemeral.
+     */
+    fun recenterOnGrid(grid: GridPoint) {
+        val meta = lastMetadata ?: return
+        if (grid == meta.grid) return
+        anchorGrid = grid
+        Telemetry.i("Dashboard", "recenter requested -> $grid")
+        toast("Centering on $grid\u2026")
+        reloadGrid(grid, meta.timeZone)
+    }
+
     fun refresh() {
-        _uiState.value.query?.let { load(it) }
+        val grid = anchorGrid
+        val meta = lastMetadata
+        if (grid != null && meta != null) {
+            reloadGrid(grid, meta.timeZone)
+        } else {
+            _uiState.value.query?.let { load(it) }
+        }
+    }
+
+    private fun reloadGrid(grid: GridPoint, timeZone: String?) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, message = null, locationStatus = LocationStatus.Idle) }
+            val radius = settingsRepository.neighborhoodRadius.first()
+            when (val result = weatherRepository.getAreaWeatherForGrid(grid, radius, RECENTER_LABEL, timeZone)) {
+                is AreaWeatherResult.Success -> {
+                    lastMetadata = result.area.metadata
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            area = result.area,
+                            offline = result.area.fromCache,
+                            message = null,
+                        )
+                    }
+                    toast(if (result.area.fromCache) OFFLINE_TOAST else "Weather updated")
+                }
+                AreaWeatherResult.NoCoverage -> {
+                    _uiState.update { it.copy(isLoading = false, message = "There's no forecast for that grid cell.") }
+                    toast("No forecast for that cell")
+                }
+                is AreaWeatherResult.Unavailable -> {
+                    _uiState.update { it.copy(isLoading = false, message = result.message) }
+                    toast(result.message)
+                }
+            }
+        }
+    }
+
+    private fun toast(text: String) {
+        _events.tryEmit(DashboardEvent.Message(text))
+    }
+
+    private companion object {
+        const val RECENTER_LABEL = "Selected grid cell"
+        const val OFFLINE_TOAST = "Showing saved data \u2014 offline"
     }
 }
 
@@ -4024,15 +4409,15 @@ private fun isCurrent(currentRoute: String?, dest: Dest): Boolean = when (dest) 
   File name:             SettingsScreen.kt
   Relative path:         app/src/main/java/com/kusl/myweather/ui/settings/SettingsScreen.kt
   Absolute path:         /home/kushal/src/kotlin/myweather/app/src/main/java/com/kusl/myweather/ui/settings/SettingsScreen.kt
-  Size:                  4.4 KiB (4574 bytes)
-  Last modified:         2026-06-19 17:01:55.000000000 -0400
+  Size:                  7.3 KiB (7477 bytes)
+  Last modified:         2026-06-21 00:10:53.768635673 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 16257544
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               403a5c5b62b49c562f74e45866d2b20225afd71ae5ac7f141bbca450cec66103
-  Last git commit:       0386d8e 2026-06-20 08:06:03 -0400 move one folder up
+  SHA-256:               b9d545cbc6de900e3ac383f23774c0073b42529e52d2d78b02d958dcc2c8339f
+  Last git commit:       d9a1b28 2026-06-21 00:12:13 -0400 add claude changes
 
 --- CONTENT ---
 package com.kusl.myweather.ui.settings
@@ -4049,7 +4434,9 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -4057,12 +4444,18 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kusl.myweather.R
+import com.kusl.myweather.core.Telemetry
 import com.kusl.myweather.data.settings.SettingsRepository
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -4123,6 +4516,8 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
                 }
             }
 
+            DiagnosticsSection()
+
             Text(
                 "MyWeather sends no analytics and uses no Google services. " +
                     "Data comes directly from the U.S. National Weather Service API.",
@@ -4130,6 +4525,66 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 8.dp),
             )
+        }
+    }
+}
+
+/**
+ * A read-only view of the in-memory [Telemetry] breadcrumb log. It exists so the
+ * user (or a developer) can see what the app just did — handy for diagnosing a
+ * slow location fix or a failed request. This data is local-only: it is never
+ * uploaded or persisted.
+ */
+@Composable
+private fun DiagnosticsSection() {
+    val logs by Telemetry.entries.collectAsStateWithLifecycle()
+    val timeFormatter = remember {
+        DateTimeFormatter.ofPattern("HH:mm:ss").withZone(ZoneId.systemDefault())
+    }
+
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text("Diagnostics", style = MaterialTheme.typography.titleMedium)
+            TextButton(onClick = { Telemetry.clear() }, enabled = logs.isNotEmpty()) { Text("Clear") }
+        }
+        Text(
+            "A local-only activity log to help debug issues like a slow location fix. " +
+                "Nothing here is uploaded or sent anywhere.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        if (logs.isEmpty()) {
+            Text(
+                "No events yet.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        } else {
+            Surface(
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                shape = MaterialTheme.shapes.medium,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Column(
+                    modifier = Modifier.padding(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    // Newest first, capped so the section stays a reasonable size.
+                    logs.asReversed().take(40).forEach { entry ->
+                        Text(
+                            text = "${timeFormatter.format(Instant.ofEpochMilli(entry.epochMs))} " +
+                                "${entry.level.name.first()} [${entry.tag}] ${entry.message}",
+                            style = MaterialTheme.typography.bodySmall,
+                            fontFamily = FontFamily.Monospace,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+            }
         }
     }
 }
@@ -4982,24 +5437,22 @@ class NwsMapperTest {
   File name:             UserAgentInterceptorTest.kt
   Relative path:         app/src/test/java/com/kusl/myweather/data/UserAgentInterceptorTest.kt
   Absolute path:         /home/kushal/src/kotlin/myweather/app/src/test/java/com/kusl/myweather/data/UserAgentInterceptorTest.kt
-  Size:                  2.9 KiB (3056 bytes)
-  Last modified:         2026-06-19 17:05:09.000000000 -0400
+  Size:                  3.1 KiB (3177 bytes)
+  Last modified:         2026-06-21 00:07:40.320230975 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 16257513
   Hard links:            1
   MIME type:             text/x-c++
-  SHA-256:               37b608bbe476e5168adfcfb1309419400184f2d110d631e70130ebda14ccfd24
-  Last git commit:       0386d8e 2026-06-20 08:06:03 -0400 move one folder up
+  SHA-256:               f7fd271aed4020df25ec09cfb3cd38924bd478ac1f46b60d2a54a2a3692d3754
+  Last git commit:       d9a1b28 2026-06-21 00:12:13 -0400 add claude changes
 
 --- CONTENT ---
 package com.kusl.myweather.data
 
 import com.kusl.myweather.data.remote.NwsHeaderInterceptor
 import com.kusl.myweather.data.remote.UserAgentProvider
-import okhttp3.Call
-import okhttp3.Connection
-import okhttp3.Interceptor
+import okhttp3.OkHttpClient
 import okhttp3.Protocol
 import okhttp3.Request
 import okhttp3.Response
@@ -5007,16 +5460,51 @@ import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
+/**
+ * Verifies [NwsHeaderInterceptor] against a *real* OkHttp interceptor chain.
+ *
+ * We deliberately do NOT hand-implement [okhttp3.Interceptor.Chain]: that
+ * interface gains members between OkHttp releases (OkHttp 5 added `dns`,
+ * `socketFactory`, `authenticator`, `followRedirects`, … to `Chain`), so a
+ * hand-rolled fake stops compiling on every upgrade. Instead we run the
+ * interceptor inside a real [OkHttpClient] and short-circuit the call with a
+ * terminal interceptor that captures the outgoing request and returns a canned
+ * 200 *without calling `chain.proceed()`*. Because the short-circuit happens in
+ * the application-interceptor layer, OkHttp never opens a socket — no DNS, no
+ * network — so this stays a fast, hermetic pure-JVM unit test.
+ */
 class UserAgentInterceptorTest {
+
+    /** Drives a single request through [interceptor] and returns the request OkHttp produced. */
+    private fun requestThrough(interceptor: NwsHeaderInterceptor): Request {
+        lateinit var captured: Request
+        val client = OkHttpClient.Builder()
+            .addInterceptor(interceptor) // the unit under test
+            .addInterceptor { chain -> // terminal: capture the request, return a canned 200, no network
+                captured = chain.request()
+                Response.Builder()
+                    .request(chain.request())
+                    .protocol(Protocol.HTTP_1_1)
+                    .code(200)
+                    .message("OK")
+                    .body("{}".toResponseBody(null))
+                    .build()
+            }
+            .build()
+
+        client.newCall(Request.Builder().url("https://api.weather.gov/points/1,2").build())
+            .execute()
+            .close()
+        return captured
+    }
 
     @Test
     fun `sets user agent from provider and geo+json accept`() {
-        val provider = UserAgentProvider("MyWeather/test (contact@example.com)")
-        val chain = RecordingChain()
-        NwsHeaderInterceptor(provider).intercept(chain)
-
-        assertEquals("MyWeather/test (contact@example.com)", chain.lastRequest!!.header("User-Agent"))
-        assertEquals("application/geo+json", chain.lastRequest!!.header("Accept"))
+        val request = requestThrough(
+            NwsHeaderInterceptor(UserAgentProvider("MyWeather/test (contact@example.com)")),
+        )
+        assertEquals("MyWeather/test (contact@example.com)", request.header("User-Agent"))
+        assertEquals("application/geo+json", request.header("Accept"))
     }
 
     @Test
@@ -5024,50 +5512,16 @@ class UserAgentInterceptorTest {
         val provider = UserAgentProvider("first/1.0")
         val interceptor = NwsHeaderInterceptor(provider)
 
-        val c1 = RecordingChain()
-        interceptor.intercept(c1)
-        assertEquals("first/1.0", c1.lastRequest!!.header("User-Agent"))
+        assertEquals("first/1.0", requestThrough(interceptor).header("User-Agent"))
 
         provider.update("second/2.0 (new@example.com)")
-        val c2 = RecordingChain()
-        interceptor.intercept(c2)
-        assertEquals("second/2.0 (new@example.com)", c2.lastRequest!!.header("User-Agent"))
+        assertEquals("second/2.0 (new@example.com)", requestThrough(interceptor).header("User-Agent"))
     }
 
     @Test
     fun `blank user agent falls back to the default`() {
-        val provider = UserAgentProvider("")
-        val chain = RecordingChain()
-        NwsHeaderInterceptor(provider).intercept(chain)
-        assertEquals(UserAgentProvider.DEFAULT, chain.lastRequest!!.header("User-Agent"))
-    }
-
-    /** Minimal OkHttp Chain that captures the request and returns a canned 200. */
-    private class RecordingChain : Interceptor.Chain {
-        var lastRequest: Request? = null
-        private val original = Request.Builder().url("https://api.weather.gov/points/1,2").build()
-
-        override fun request(): Request = original
-
-        override fun proceed(request: Request): Response {
-            lastRequest = request
-            return Response.Builder()
-                .request(request)
-                .protocol(Protocol.HTTP_1_1)
-                .code(200)
-                .message("OK")
-                .body("{}".toResponseBody(null))
-                .build()
-        }
-
-        override fun connection(): Connection? = null
-        override fun call(): Call = throw UnsupportedOperationException()
-        override fun connectTimeoutMillis(): Int = 0
-        override fun withConnectTimeout(timeout: Int, unit: java.util.concurrent.TimeUnit): Interceptor.Chain = this
-        override fun readTimeoutMillis(): Int = 0
-        override fun withReadTimeout(timeout: Int, unit: java.util.concurrent.TimeUnit): Interceptor.Chain = this
-        override fun writeTimeoutMillis(): Int = 0
-        override fun withWriteTimeout(timeout: Int, unit: java.util.concurrent.TimeUnit): Interceptor.Chain = this
+        val request = requestThrough(NwsHeaderInterceptor(UserAgentProvider("")))
+        assertEquals(UserAgentProvider.DEFAULT, request.header("User-Agent"))
     }
 }
 
@@ -5080,15 +5534,15 @@ class UserAgentInterceptorTest {
   File name:             WeatherRepositoryTest.kt
   Relative path:         app/src/test/java/com/kusl/myweather/data/WeatherRepositoryTest.kt
   Absolute path:         /home/kushal/src/kotlin/myweather/app/src/test/java/com/kusl/myweather/data/WeatherRepositoryTest.kt
-  Size:                  11.4 KiB (11677 bytes)
-  Last modified:         2026-06-19 17:06:33.000000000 -0400
+  Size:                  12.3 KiB (12596 bytes)
+  Last modified:         2026-06-21 00:11:28.119736021 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 16257512
   Hard links:            1
   MIME type:             text/x-c++
-  SHA-256:               d0360fe9c2ad7a9d08712be0580d9d5467c5e923ed3292af0a6146fe3ca7c54b
-  Last git commit:       0386d8e 2026-06-20 08:06:03 -0400 move one folder up
+  SHA-256:               7c7a40489e0c23e4aad46be67b54994ef7d84b8559358f9de6dad0a534648334
+  Last git commit:       d9a1b28 2026-06-21 00:12:13 -0400 add claude changes
 
 --- CONTENT ---
 package com.kusl.myweather.data
@@ -5251,6 +5705,28 @@ class WeatherRepositoryTest {
         assertEquals(WeatherRepositoryImpl.DEFAULT_FORECAST_TTL_MS, entry.expiresAtEpochMs - time.nowMs())
     }
 
+    @Test
+    fun `recenter on a grid assembles the matrix without a points lookup`() = runTest {
+        val center = GridPoint("AKQ", 84, 61)
+
+        val result = repo.getAreaWeatherForGrid(
+            center = center,
+            radius = 1,
+            label = "Selected grid cell",
+            timeZone = "America/New_York",
+        )
+
+        assertTrue(result is AreaWeatherResult.Success)
+        val area = (result as AreaWeatherResult.Success).area
+        assertEquals(center, area.primary.grid)
+        assertEquals(center, area.tiles.first { it.isPrimary }.grid)
+        assertEquals(9, area.tiles.size)             // centre + 8 neighbours
+        assertEquals(0, api.pointCallCount)          // grid path never hits /points
+        assertEquals("Selected grid cell", area.metadata.displayName)
+        assertEquals("America/New_York", area.metadata.timeZone)
+        assertFalse(area.fromCache)
+    }
+
     // ── helpers ───────────────────────────────────────────────────────────────
 
     private fun primeFreshMetadata(expiresInMs: Long = 30L * 24 * 60 * 60 * 1000) {
@@ -5377,15 +5853,15 @@ private class MutableTimeSource(private var now: Long) : TimeSource {
   File name:             DashboardViewModelTest.kt
   Relative path:         app/src/test/java/com/kusl/myweather/ui/dashboard/DashboardViewModelTest.kt
   Absolute path:         /home/kushal/src/kotlin/myweather/app/src/test/java/com/kusl/myweather/ui/dashboard/DashboardViewModelTest.kt
-  Size:                  6.0 KiB (6184 bytes)
-  Last modified:         2026-06-19 17:07:20.000000000 -0400
+  Size:                  7.3 KiB (7507 bytes)
+  Last modified:         2026-06-21 00:11:16.025679255 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 16257507
   Hard links:            1
   MIME type:             text/x-c++
-  SHA-256:               daca9b782c571f91975290054cb543c03c80e8f0b01e75e21be0b71e18f7ec3d
-  Last git commit:       0386d8e 2026-06-20 08:06:03 -0400 move one folder up
+  SHA-256:               8bbf57de9168e3aa9e8d876795144c19b1792ecb224244d7e1328e916490f6b4
+  Last git commit:       d9a1b28 2026-06-21 00:12:13 -0400 add claude changes
 
 --- CONTENT ---
 package com.kusl.myweather.ui.dashboard
@@ -5508,6 +5984,35 @@ class DashboardViewModelTest {
         assertEquals(1, repo.callCount)
         assertNotNull(vm.uiState.value.area)
     }
+
+    @Test
+    fun `recenter on a neighbour grid loads that cell`() = runTest(dispatcher) {
+        val repo = FakeWeatherRepository(AreaWeatherResult.Success(sampleArea(false)))
+        val vm = viewModel(repo)
+
+        vm.load(GeoPoint(36.85, -76.28))
+        advanceUntilIdle()
+
+        // sampleArea's primary cell is AKQ 83,61 — recenter on a neighbour.
+        vm.recenterOnGrid(GridPoint("AKQ", 84, 61))
+        advanceUntilIdle()
+
+        assertEquals(1, repo.gridCallCount)
+        assertEquals(GridPoint("AKQ", 84, 61), repo.lastGrid)
+        assertNotNull(vm.uiState.value.area)
+        assertFalse(vm.uiState.value.isLoading)
+    }
+
+    @Test
+    fun `recenter is ignored before any area is loaded`() = runTest(dispatcher) {
+        val repo = FakeWeatherRepository(AreaWeatherResult.Success(sampleArea(false)))
+        val vm = viewModel(repo)
+
+        vm.recenterOnGrid(GridPoint("AKQ", 84, 61)) // no load() yet
+        advanceUntilIdle()
+
+        assertEquals(0, repo.gridCallCount)
+    }
 }
 
 private fun sampleArea(fromCache: Boolean): AreaWeather {
@@ -5526,8 +6031,22 @@ private fun sampleArea(fromCache: Boolean): AreaWeather {
 
 private class FakeWeatherRepository(private val result: AreaWeatherResult) : WeatherRepository {
     var callCount = 0
+    var gridCallCount = 0
+    var lastGrid: GridPoint? = null
+
     override suspend fun getAreaWeather(point: GeoPoint, radius: Int): AreaWeatherResult {
         callCount++
+        return result
+    }
+
+    override suspend fun getAreaWeatherForGrid(
+        center: GridPoint,
+        radius: Int,
+        label: String?,
+        timeZone: String?,
+    ): AreaWeatherResult {
+        gridCallCount++
+        lastGrid = center
         return result
     }
 }
@@ -7457,15 +7976,15 @@ include(":app")
 ################################################################################
 # DUMP SUMMARY
 ################################################################################
-  Files dumped   : 81
-  Total size     : 251.4 KiB (257469 bytes)
+  Files dumped   : 82
+  Total size     : 270.7 KiB (277209 bytes)
   Output file    : /home/kushal/src/kotlin/myweather/docs/llm/dump.txt
-  Completed at   : 2026-06-20T14:14:25-04:00
+  Completed at   : 2026-06-21T00:13:39-04:00
 ################################################################################
 # END OF DUMP
 ################################################################################
 
-real	0m2.500s
-user	0m1.252s
-sys	0m1.560s
+real	0m2.645s
+user	0m1.298s
+sys	0m1.650s
 kushal@fedora:~/src/kotlin/myweather$ 
