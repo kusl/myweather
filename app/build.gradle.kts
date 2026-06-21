@@ -45,6 +45,19 @@ fun resolveReleaseSigning(): Map<String, String>? {
     return null
 }
 
+/**
+ * Per-build version, normally injected by CI (the GitHub Actions run number —
+ * see .github/workflows/build_apk.yml). A strictly-increasing versionCode is what
+ * makes Android — and update managers like Obtainium — treat each published APK
+ * as a genuine upgrade over the one already installed. Local builds have no such
+ * env var and fall back to a stable default, so `assembleRelease` still works
+ * offline. (Reading a named env var is tracked by Gradle's configuration cache,
+ * so a new run_number correctly invalidates and re-evaluates the version.)
+ */
+val ciVersionCode: Int = System.getenv("MYWEATHER_VERSION_CODE")?.toIntOrNull() ?: 1
+val ciVersionName: String =
+    System.getenv("MYWEATHER_VERSION_NAME")?.takeIf { it.isNotBlank() } ?: "1.0.0"
+
 android {
     // Code package for the generated R and BuildConfig classes. This is internal
     // and never user-visible, so it stays as-is: every `import com.kusl.myweather.*`
@@ -66,8 +79,8 @@ android {
         applicationId = "com.github.kusl.myweather"
         minSdk = 34
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = ciVersionCode
+        versionName = ciVersionName
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables { useSupportLibrary = true }

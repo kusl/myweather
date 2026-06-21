@@ -1,5 +1,14 @@
-# Builds a signed release APK on every push to main and publishes it to a
-# rolling "pre-release" GitHub Release.
+# Builds a signed release APK on every push to main and publishes it as an
+# immutable, monotonically-versioned GitHub Release (one release per build).
+#
+# This replaces the old single "rolling" pre-release. Each build now produces:
+#   • a unique, increasing git tag         v1.0.<run_number>
+#   • an APK whose versionCode == <run_number> and versionName == 1.0.<run_number>
+#   • a uniquely-named asset                MyWeather-v1.0.<run_number>.apk
+# A strictly-increasing versionCode is what lets Android — and update managers
+# like Obtainium — recognise each release as a genuine upgrade. The release is a
+# normal (non-pre-) release and is marked "latest", so Obtainium picks it up with
+# its default settings (no "include pre-releases" workaround needed).
 #
 # Signing: if the repository defines the signing secrets below, the APK is
 # signed with the real release key. If not (e.g. on a fork), app/build.gradle.kts
@@ -19,7 +28,7 @@ on:
   workflow_dispatch:
 
 # Least privilege by default; the build job opts up to contents:write so it can
-# publish the rolling release.
+# publish the release.
 permissions:
   contents: read
 
@@ -34,6 +43,16 @@ jobs:
     timeout-minutes: 30
     permissions:
       contents: write
+
+    # Single source of truth for this build's version, derived from the monotonic
+    # GitHub Actions run number. Reused for the Gradle versionCode/versionName
+    # (read via System.getenv in app/build.gradle.kts), the git tag, the APK
+    # filename, and the release title — so they all agree. Job-level env is
+    # inherited by every step below.
+    env:
+      MYWEATHER_VERSION_CODE: ${{ github.run_number }}
+      MYWEATHER_VERSION_NAME: 1.0.${{ github.run_number }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -56,32 +75,68 @@ jobs:
           echo "MYWEATHER_KEYSTORE_PATH=${{ github.workspace }}/release.keystore" >> "$GITHUB_ENV"
 
       - name: Assemble release
+        # MYWEATHER_VERSION_CODE / MYWEATHER_VERSION_NAME are inherited from the
+        # job-level env above and read by app/build.gradle.kts. The signing
+        # secrets below are empty on forks/unsecured runs; the Gradle script then
+        # falls back to debug signing so the build still produces an APK.
         env:
-          # These are empty on forks/unsecured runs; the Gradle script then
-          # falls back to debug signing so the build still produces an APK.
           MYWEATHER_KEYSTORE_PASSWORD: ${{ secrets.MYWEATHER_KEYSTORE_PASSWORD }}
           MYWEATHER_KEY_ALIAS: ${{ secrets.MYWEATHER_KEY_ALIAS }}
           MYWEATHER_KEY_PASSWORD: ${{ secrets.MYWEATHER_KEY_PASSWORD }}
         run: ./gradlew :app:assembleRelease --stacktrace
 
+      - name: Stage versioned APK
+        # Copy whatever single APK Gradle produced to a unique, version-stamped
+        # filename so each release ships a distinct, incrementing asset.
+        run: |
+          set -euo pipefail
+          mkdir -p build/dist
+          apk="$(find app/build/outputs/apk/release -maxdepth 1 -name '*.apk' | head -n1)"
+          if [ -z "$apk" ]; then
+            echo "::error::No release APK found under app/build/outputs/apk/release"
+            exit 1
+          fi
+          dest="build/dist/MyWeather-v${MYWEATHER_VERSION_NAME}.apk"
+          cp "$apk" "$dest"
+          echo "Staged: $dest"
+          ls -l build/dist
+
       - name: Upload APK artifact
         uses: actions/upload-artifact@v7
         with:
           name: myweather-release-apk
-          path: app/build/outputs/apk/release/*.apk
+          path: build/dist/*.apk
           if-no-files-found: error
 
-      - name: Publish rolling pre-release
+      - name: Publish GitHub Release
         # Only from the canonical repo on a real push to main — never from forks
         # or pull requests (which also lack the signing secrets).
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'kusl/myweather' }}
         uses: softprops/action-gh-release@v3
         with:
-          tag_name: rolling
-          name: Rolling build
-          prerelease: true
-          make_latest: false
+          tag_name: v${{ env.MYWEATHER_VERSION_NAME }}
+          name: MyWeather v${{ env.MYWEATHER_VERSION_NAME }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          make_latest: true
           body: |
-            Automated pre-release built from the latest commit on `main`.
+            Automated release built from the latest commit on `main`.
+
+            ## MyWeather v${{ env.MYWEATHER_VERSION_NAME }}
+
+            **versionCode** `${{ env.MYWEATHER_VERSION_CODE }}` · **versionName** `${{ env.MYWEATHER_VERSION_NAME }}`
+
+            ### Download
+
+            | Platform | File |
+            |----------|------|
+            | Android | `MyWeather-v${{ env.MYWEATHER_VERSION_NAME }}.apk` |
+
+            ### Android users (Obtainium)
+
+            Point Obtainium at this repository's releases for automatic updates.
+            Every release ships a strictly higher `versionCode`, so updates install cleanly.
+
             Commit: ${{ github.sha }}
-          files: app/build/outputs/apk/release/*.apk
+          files: build/dist/*.apk
