@@ -3,13 +3,19 @@ package com.kusl.myweather.ui.dashboard
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.kusl.myweather.core.GeoPoint
-import com.kusl.myweather.data.location.LocationSource
+import com.kusl.myweather.core.GridPoint
+import com.kusl.myweather.core.Telemetry
 import com.kusl.myweather.data.location.LocationResult
+import com.kusl.myweather.data.location.LocationSource
 import com.kusl.myweather.data.settings.SettingsRepository
 import com.kusl.myweather.domain.AreaWeatherResult
 import com.kusl.myweather.domain.WeatherRepository
+import com.kusl.myweather.domain.model.PointMetadata
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
@@ -24,10 +30,25 @@ class DashboardViewModel(
     private val _uiState = MutableStateFlow(DashboardUiState())
     val uiState: StateFlow<DashboardUiState> = _uiState.asStateFlow()
 
+    // One-shot toast signals. extraBufferCapacity lets us emit from non-suspend
+    // code via tryEmit without dropping events to an attached collector.
+    private val _events = MutableSharedFlow<DashboardEvent>(extraBufferCapacity = 16)
+    val events: SharedFlow<DashboardEvent> = _events.asSharedFlow()
+
+    // What the current view is anchored to, so refresh() reloads the right thing:
+    //  - a tapped grid cell (set by recenterOnGrid), or
+    //  - otherwise the coordinate in uiState.query (set by load()).
+    private var anchorGrid: GridPoint? = null
+
+    // Metadata of the currently displayed area; supplies the office time-zone to
+    // the grid-recenter path and lets us ignore a tap on the current centre.
+    private var lastMetadata: PointMetadata? = null
+
     fun hasLocationPermission(): Boolean = locationProvider.hasPermission()
 
     /** Called after the runtime permission was denied by the user. */
     fun onPermissionDenied() {
+        Telemetry.w("Dashboard", "location permission denied by user")
         _uiState.update { it.copy(locationStatus = LocationStatus.PermissionDenied) }
     }
 
@@ -35,15 +56,21 @@ class DashboardViewModel(
     fun requestDeviceLocation() {
         viewModelScope.launch {
             _uiState.update { it.copy(locationStatus = LocationStatus.Requesting) }
+            Telemetry.i("Dashboard", "device location requested")
+            toast("Finding your location\u2026")
             when (val result = locationProvider.currentLocation()) {
                 is LocationResult.Available -> {
                     _uiState.update { it.copy(locationStatus = LocationStatus.Idle) }
                     load(result.point)
                 }
-                LocationResult.PermissionDenied ->
+                LocationResult.PermissionDenied -> {
                     _uiState.update { it.copy(locationStatus = LocationStatus.PermissionDenied) }
-                LocationResult.Unavailable ->
+                    toast("Location permission denied")
+                }
+                LocationResult.Unavailable -> {
                     _uiState.update { it.copy(locationStatus = LocationStatus.Unavailable) }
+                    toast("Couldn't get a location fix")
+                }
             }
         }
     }
@@ -55,6 +82,7 @@ class DashboardViewModel(
             _uiState.update {
                 it.copy(message = "That doesn't look like a valid \"latitude, longitude\".")
             }
+            toast("Enter coordinates like \"36.85, -76.28\"")
             return
         }
         load(point)
@@ -62,34 +90,103 @@ class DashboardViewModel(
 
     fun load(point: GeoPoint) {
         viewModelScope.launch {
+            anchorGrid = null
             _uiState.update {
                 it.copy(isLoading = true, query = point, message = null, locationStatus = LocationStatus.Idle)
             }
+            Telemetry.i("Dashboard", "load ${point.toApiString()}")
             val radius = settingsRepository.neighborhoodRadius.first()
             when (val result = weatherRepository.getAreaWeather(point, radius)) {
-                is AreaWeatherResult.Success -> _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        area = result.area,
-                        offline = result.area.fromCache,
-                        message = null,
-                    )
+                is AreaWeatherResult.Success -> {
+                    lastMetadata = result.area.metadata
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            area = result.area,
+                            offline = result.area.fromCache,
+                            message = null,
+                        )
+                    }
+                    toast(if (result.area.fromCache) OFFLINE_TOAST else "Weather updated")
                 }
-                AreaWeatherResult.NoCoverage -> _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        area = null,
-                        message = "The National Weather Service doesn't cover that spot. The NWS API is for U.S. locations only.",
-                    )
+                AreaWeatherResult.NoCoverage -> {
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            area = null,
+                            message = "The National Weather Service doesn't cover that spot. The NWS API is for U.S. locations only.",
+                        )
+                    }
+                    toast("No NWS coverage there (U.S. only)")
                 }
-                is AreaWeatherResult.Unavailable -> _uiState.update {
-                    it.copy(isLoading = false, message = result.message)
+                is AreaWeatherResult.Unavailable -> {
+                    _uiState.update { it.copy(isLoading = false, message = result.message) }
+                    toast(result.message)
                 }
             }
         }
     }
 
+    /**
+     * Make a tapped neighbouring cell the new centre of the matrix, in one tap.
+     * No-op if we don't have an area yet, or if the tapped cell is already the
+     * centre. The user can always return to a saved location from the Locations
+     * tab, so this re-centring is intentionally ephemeral.
+     */
+    fun recenterOnGrid(grid: GridPoint) {
+        val meta = lastMetadata ?: return
+        if (grid == meta.grid) return
+        anchorGrid = grid
+        Telemetry.i("Dashboard", "recenter requested -> $grid")
+        toast("Centering on $grid\u2026")
+        reloadGrid(grid, meta.timeZone)
+    }
+
     fun refresh() {
-        _uiState.value.query?.let { load(it) }
+        val grid = anchorGrid
+        val meta = lastMetadata
+        if (grid != null && meta != null) {
+            reloadGrid(grid, meta.timeZone)
+        } else {
+            _uiState.value.query?.let { load(it) }
+        }
+    }
+
+    private fun reloadGrid(grid: GridPoint, timeZone: String?) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, message = null, locationStatus = LocationStatus.Idle) }
+            val radius = settingsRepository.neighborhoodRadius.first()
+            when (val result = weatherRepository.getAreaWeatherForGrid(grid, radius, RECENTER_LABEL, timeZone)) {
+                is AreaWeatherResult.Success -> {
+                    lastMetadata = result.area.metadata
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            area = result.area,
+                            offline = result.area.fromCache,
+                            message = null,
+                        )
+                    }
+                    toast(if (result.area.fromCache) OFFLINE_TOAST else "Weather updated")
+                }
+                AreaWeatherResult.NoCoverage -> {
+                    _uiState.update { it.copy(isLoading = false, message = "There's no forecast for that grid cell.") }
+                    toast("No forecast for that cell")
+                }
+                is AreaWeatherResult.Unavailable -> {
+                    _uiState.update { it.copy(isLoading = false, message = result.message) }
+                    toast(result.message)
+                }
+            }
+        }
+    }
+
+    private fun toast(text: String) {
+        _events.tryEmit(DashboardEvent.Message(text))
+    }
+
+    private companion object {
+        const val RECENTER_LABEL = "Selected grid cell"
+        const val OFFLINE_TOAST = "Showing saved data \u2014 offline"
     }
 }

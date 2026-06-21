@@ -18,3 +18,12 @@ data class DashboardUiState(
 ) {
     val hasData: Boolean get() = area != null
 }
+
+/**
+ * One-shot, transient signals from the ViewModel that should be shown as a Toast
+ * (or similar) exactly once — as opposed to [DashboardUiState], which is the
+ * durable screen state. Collected by the screen and never replayed.
+ */
+sealed interface DashboardEvent {
+    data class Message(val text: String) : DashboardEvent
+}

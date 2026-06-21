@@ -118,6 +118,35 @@ class DashboardViewModelTest {
         assertEquals(1, repo.callCount)
         assertNotNull(vm.uiState.value.area)
     }
+
+    @Test
+    fun `recenter on a neighbour grid loads that cell`() = runTest(dispatcher) {
+        val repo = FakeWeatherRepository(AreaWeatherResult.Success(sampleArea(false)))
+        val vm = viewModel(repo)
+
+        vm.load(GeoPoint(36.85, -76.28))
+        advanceUntilIdle()
+
+        // sampleArea's primary cell is AKQ 83,61 — recenter on a neighbour.
+        vm.recenterOnGrid(GridPoint("AKQ", 84, 61))
+        advanceUntilIdle()
+
+        assertEquals(1, repo.gridCallCount)
+        assertEquals(GridPoint("AKQ", 84, 61), repo.lastGrid)
+        assertNotNull(vm.uiState.value.area)
+        assertFalse(vm.uiState.value.isLoading)
+    }
+
+    @Test
+    fun `recenter is ignored before any area is loaded`() = runTest(dispatcher) {
+        val repo = FakeWeatherRepository(AreaWeatherResult.Success(sampleArea(false)))
+        val vm = viewModel(repo)
+
+        vm.recenterOnGrid(GridPoint("AKQ", 84, 61)) // no load() yet
+        advanceUntilIdle()
+
+        assertEquals(0, repo.gridCallCount)
+    }
 }
 
 private fun sampleArea(fromCache: Boolean): AreaWeather {
@@ -136,8 +165,22 @@ private fun sampleArea(fromCache: Boolean): AreaWeather {
 
 private class FakeWeatherRepository(private val result: AreaWeatherResult) : WeatherRepository {
     var callCount = 0
+    var gridCallCount = 0
+    var lastGrid: GridPoint? = null
+
     override suspend fun getAreaWeather(point: GeoPoint, radius: Int): AreaWeatherResult {
         callCount++
+        return result
+    }
+
+    override suspend fun getAreaWeatherForGrid(
+        center: GridPoint,
+        radius: Int,
+        label: String?,
+        timeZone: String?,
+    ): AreaWeatherResult {
+        gridCallCount++
+        lastGrid = center
         return result
     }
 }

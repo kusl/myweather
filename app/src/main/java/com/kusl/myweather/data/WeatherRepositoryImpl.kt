@@ -1,10 +1,10 @@
 package com.kusl.myweather.data
 
-import android.util.Log
 import com.kusl.myweather.core.GeoPoint
 import com.kusl.myweather.core.GridMath
 import com.kusl.myweather.core.GridPoint
 import com.kusl.myweather.core.SystemTimeSource
+import com.kusl.myweather.core.Telemetry
 import com.kusl.myweather.core.TimeSource
 import com.kusl.myweather.data.local.dao.ForecastCacheDao
 import com.kusl.myweather.data.local.dao.PointMetadataDao
@@ -45,61 +45,116 @@ class WeatherRepositoryImpl(
 
     override suspend fun getAreaWeather(point: GeoPoint, radius: Int): AreaWeatherResult {
         val coord = point.rounded()
+        Telemetry.i("WeatherRepository", "area for ${coord.toApiString()} r=$radius")
 
         return when (val meta = resolveMetadata(coord)) {
             is MetaResult.NoCoverage -> AreaWeatherResult.NoCoverage
             is MetaResult.Unavailable ->
                 AreaWeatherResult.Unavailable("Couldn't reach the weather service. Check your connection and try again.")
-            is MetaResult.Ok -> {
-                val primary = when (val p = fetchForecast(meta.metadata.grid)) {
-                    is ForecastResult.Ok -> p
-                    ForecastResult.Unavailable ->
-                        return AreaWeatherResult.Unavailable("The forecast didn't load. Check your connection and try again.")
-                }
-
-                // Assemble the surrounding ring, cache-aside, with bounded
-                // concurrency so even a cold area can't stampede NWS.
-                val neighborGrids = GridMath.surrounding(meta.metadata.grid, radius)
-                val semaphore = Semaphore(NEIGHBOR_CONCURRENCY)
-                val neighborTiles = coroutineScope {
-                    neighborGrids.map { grid ->
-                        async {
-                            val r = semaphore.withPermit { fetchForecast(grid) }
-                            (r as? ForecastResult.Ok)?.let {
-                                WeatherTile(
-                                    grid = grid,
-                                    forecast = it.forecast,
-                                    isPrimary = false,
-                                    distanceMeters = approxMeters(meta.metadata.grid, grid),
-                                )
-                            }
-                        }
-                    }.awaitAll().filterNotNull()
-                }.sortedBy { it.distanceMeters ?: Double.MAX_VALUE }
-
-                val primaryTile = WeatherTile(
-                    grid = meta.metadata.grid,
-                    forecast = primary.forecast,
-                    isPrimary = true,
-                    distanceMeters = 0.0,
-                )
-
-                // Bound DB growth without discarding our offline fallback: only
-                // drop entries that expired more than a week ago.
-                runCatching { forecastDao.deleteExpiredBefore(time.nowMs() - STALE_RETENTION_MS) }
-
-                val fromCache = meta.stale || primary.stale
-                AreaWeatherResult.Success(
-                    AreaWeather(
-                        query = coord,
-                        metadata = meta.metadata,
-                        primary = primary.forecast,
-                        tiles = listOf(primaryTile) + neighborTiles,
-                        fromCache = fromCache,
-                    ),
-                )
-            }
+            is MetaResult.Ok -> buildArea(
+                center = meta.metadata.grid,
+                radius = radius,
+                metadata = meta.metadata,
+                query = coord,
+                metaStale = meta.stale,
+            )
         }
+    }
+
+    override suspend fun getAreaWeatherForGrid(
+        center: GridPoint,
+        radius: Int,
+        label: String?,
+        timeZone: String?,
+    ): AreaWeatherResult {
+        Telemetry.i("WeatherRepository", "recenter on $center r=$radius")
+        // We already know the grid, so no /points lookup is needed. Synthesize
+        // metadata for this cell, reusing the office time-zone we resolved earlier.
+        val metadata = PointMetadata(
+            queryLatitude = 0.0,
+            queryLongitude = 0.0,
+            gridId = center.gridId,
+            gridX = center.gridX,
+            gridY = center.gridY,
+            city = label,
+            state = null,
+            timeZone = timeZone,
+        )
+        // No metadata staleness applies here; freshness is governed entirely by
+        // the per-cell forecast cache.
+        return buildArea(
+            center = center,
+            radius = radius,
+            metadata = metadata,
+            query = metadata.query,
+            metaStale = false,
+        )
+    }
+
+    /**
+     * Fetch the [center] cell's forecast plus its surrounding [radius] ring
+     * (cache-aside, bounded concurrency) and assemble them into an [AreaWeather].
+     * Shared by the coordinate path ([getAreaWeather]) and the grid-recenter path
+     * ([getAreaWeatherForGrid]).
+     */
+    private suspend fun buildArea(
+        center: GridPoint,
+        radius: Int,
+        metadata: PointMetadata,
+        query: GeoPoint,
+        metaStale: Boolean,
+    ): AreaWeatherResult {
+        val primary = when (val p = fetchForecast(center)) {
+            is ForecastResult.Ok -> p
+            ForecastResult.Unavailable ->
+                return AreaWeatherResult.Unavailable("The forecast didn't load. Check your connection and try again.")
+        }
+
+        // Assemble the surrounding ring, cache-aside, with bounded concurrency so
+        // even a cold area can't stampede NWS.
+        val neighborGrids = GridMath.surrounding(center, radius)
+        val semaphore = Semaphore(NEIGHBOR_CONCURRENCY)
+        val neighborTiles = coroutineScope {
+            neighborGrids.map { grid ->
+                async {
+                    val r = semaphore.withPermit { fetchForecast(grid) }
+                    (r as? ForecastResult.Ok)?.let {
+                        WeatherTile(
+                            grid = grid,
+                            forecast = it.forecast,
+                            isPrimary = false,
+                            distanceMeters = approxMeters(center, grid),
+                        )
+                    }
+                }
+            }.awaitAll().filterNotNull()
+        }.sortedBy { it.distanceMeters ?: Double.MAX_VALUE }
+
+        val primaryTile = WeatherTile(
+            grid = center,
+            forecast = primary.forecast,
+            isPrimary = true,
+            distanceMeters = 0.0,
+        )
+
+        // Bound DB growth without discarding our offline fallback: only drop
+        // entries that expired more than a week ago.
+        runCatching { forecastDao.deleteExpiredBefore(time.nowMs() - STALE_RETENTION_MS) }
+
+        val fromCache = metaStale || primary.stale
+        Telemetry.i(
+            "WeatherRepository",
+            "assembled $center tiles=${neighborTiles.size + 1} cache=$fromCache",
+        )
+        return AreaWeatherResult.Success(
+            AreaWeather(
+                query = query,
+                metadata = metadata,
+                primary = primary.forecast,
+                tiles = listOf(primaryTile) + neighborTiles,
+                fromCache = fromCache,
+            ),
+        )
     }
 
     // ── metadata (long-lived) ─────────────────────────────────────────────────
@@ -193,7 +248,7 @@ class WeatherRepositoryImpl(
             // serve a stale copy if we have one, otherwise report unavailable.
             else -> {
                 if (response.code() !in intArrayOf(404, 304)) {
-                    Log.w(TAG, "NWS forecast for $grid returned HTTP ${response.code()}")
+                    Telemetry.w("WeatherRepository", "NWS forecast for $grid returned HTTP ${response.code()}")
                 }
                 cached?.let { ForecastResult.Ok(it.decodeForecast(), stale = true) } ?: ForecastResult.Unavailable
             }
@@ -211,8 +266,6 @@ class WeatherRepositoryImpl(
     }
 
     companion object {
-        private const val TAG = "WeatherRepository"
-
         // Nominal NWS cell size (~2.5 km), used only to order/label neighbours.
         private const val NOMINAL_CELL_METERS = 2_500.0
         private const val NEIGHBOR_CONCURRENCY = 4

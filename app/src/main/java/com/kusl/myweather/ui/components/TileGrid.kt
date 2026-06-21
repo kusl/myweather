@@ -1,6 +1,7 @@
 package com.kusl.myweather.ui.components
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,11 +27,16 @@ import com.kusl.myweather.domain.model.WeatherTile
  * NWS grid X/Y (north-up), so the layout mirrors real geography; the user's own
  * cell is highlighted. Cells with no fetched forecast render as muted blanks so
  * the grid stays aligned.
+ *
+ * Tapping a neighbouring cell invokes [onTileSelected] — the dashboard uses this
+ * to re-centre the matrix on that cell. The primary (centre) cell and empty
+ * cells are not interactive.
  */
 @Composable
 fun TileGrid(
     tiles: List<WeatherTile>,
     modifier: Modifier = Modifier,
+    onTileSelected: (WeatherTile) -> Unit = {},
 ) {
     if (tiles.isEmpty()) return
 
@@ -46,6 +52,12 @@ fun TileGrid(
             style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.padding(start = 4.dp, bottom = 8.dp),
         )
+        Text(
+            "Tap a surrounding cell to centre on it.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(start = 4.dp, bottom = 8.dp),
+        )
         // Rows from north (max Y) down to south (min Y).
         for (y in maxY downTo minY) {
             Row(
@@ -54,7 +66,11 @@ fun TileGrid(
             ) {
                 for (x in minX..maxX) {
                     val tile = byCoord[x to y]
-                    TileCell(tile = tile, modifier = Modifier.weight(1f))
+                    // Only filled, non-primary cells are tappable.
+                    val onClick: (() -> Unit)? =
+                        tile?.takeIf { it.forecast?.current != null && !it.isPrimary }
+                            ?.let { t -> { onTileSelected(t) } }
+                    TileCell(tile = tile, onClick = onClick, modifier = Modifier.weight(1f))
                 }
             }
         }
@@ -62,7 +78,11 @@ fun TileGrid(
 }
 
 @Composable
-private fun TileCell(tile: WeatherTile?, modifier: Modifier = Modifier) {
+private fun TileCell(
+    tile: WeatherTile?,
+    onClick: (() -> Unit)?,
+    modifier: Modifier = Modifier,
+) {
     val period = tile?.forecast?.current
     val isPrimary = tile?.isPrimary == true
 
@@ -74,7 +94,7 @@ private fun TileCell(tile: WeatherTile?, modifier: Modifier = Modifier) {
         ) {
             Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                 Text(
-                    "—",
+                    "\u2014",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -90,8 +110,15 @@ private fun TileCell(tile: WeatherTile?, modifier: Modifier = Modifier) {
         if (isPrimary) MaterialTheme.colorScheme.onTertiaryContainer
         else MaterialTheme.colorScheme.onSecondaryContainer
 
+    val cellModifier =
+        if (onClick != null) {
+            modifier.aspectRatio(1f).clickable(onClickLabel = "Center on this cell") { onClick() }
+        } else {
+            modifier.aspectRatio(1f)
+        }
+
     Card(
-        modifier = modifier.aspectRatio(1f),
+        modifier = cellModifier,
         colors = CardDefaults.cardColors(containerColor = container),
         border = if (isPrimary) BorderStroke(2.dp, MaterialTheme.colorScheme.tertiary) else null,
     ) {

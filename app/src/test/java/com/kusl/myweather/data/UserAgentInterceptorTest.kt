@@ -2,9 +2,7 @@ package com.kusl.myweather.data
 
 import com.kusl.myweather.data.remote.NwsHeaderInterceptor
 import com.kusl.myweather.data.remote.UserAgentProvider
-import okhttp3.Call
-import okhttp3.Connection
-import okhttp3.Interceptor
+import okhttp3.OkHttpClient
 import okhttp3.Protocol
 import okhttp3.Request
 import okhttp3.Response
@@ -12,16 +10,51 @@ import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
+/**
+ * Verifies [NwsHeaderInterceptor] against a *real* OkHttp interceptor chain.
+ *
+ * We deliberately do NOT hand-implement [okhttp3.Interceptor.Chain]: that
+ * interface gains members between OkHttp releases (OkHttp 5 added `dns`,
+ * `socketFactory`, `authenticator`, `followRedirects`, … to `Chain`), so a
+ * hand-rolled fake stops compiling on every upgrade. Instead we run the
+ * interceptor inside a real [OkHttpClient] and short-circuit the call with a
+ * terminal interceptor that captures the outgoing request and returns a canned
+ * 200 *without calling `chain.proceed()`*. Because the short-circuit happens in
+ * the application-interceptor layer, OkHttp never opens a socket — no DNS, no
+ * network — so this stays a fast, hermetic pure-JVM unit test.
+ */
 class UserAgentInterceptorTest {
+
+    /** Drives a single request through [interceptor] and returns the request OkHttp produced. */
+    private fun requestThrough(interceptor: NwsHeaderInterceptor): Request {
+        lateinit var captured: Request
+        val client = OkHttpClient.Builder()
+            .addInterceptor(interceptor) // the unit under test
+            .addInterceptor { chain -> // terminal: capture the request, return a canned 200, no network
+                captured = chain.request()
+                Response.Builder()
+                    .request(chain.request())
+                    .protocol(Protocol.HTTP_1_1)
+                    .code(200)
+                    .message("OK")
+                    .body("{}".toResponseBody(null))
+                    .build()
+            }
+            .build()
+
+        client.newCall(Request.Builder().url("https://api.weather.gov/points/1,2").build())
+            .execute()
+            .close()
+        return captured
+    }
 
     @Test
     fun `sets user agent from provider and geo+json accept`() {
-        val provider = UserAgentProvider("MyWeather/test (contact@example.com)")
-        val chain = RecordingChain()
-        NwsHeaderInterceptor(provider).intercept(chain)
-
-        assertEquals("MyWeather/test (contact@example.com)", chain.lastRequest!!.header("User-Agent"))
-        assertEquals("application/geo+json", chain.lastRequest!!.header("Accept"))
+        val request = requestThrough(
+            NwsHeaderInterceptor(UserAgentProvider("MyWeather/test (contact@example.com)")),
+        )
+        assertEquals("MyWeather/test (contact@example.com)", request.header("User-Agent"))
+        assertEquals("application/geo+json", request.header("Accept"))
     }
 
     @Test
@@ -29,49 +62,15 @@ class UserAgentInterceptorTest {
         val provider = UserAgentProvider("first/1.0")
         val interceptor = NwsHeaderInterceptor(provider)
 
-        val c1 = RecordingChain()
-        interceptor.intercept(c1)
-        assertEquals("first/1.0", c1.lastRequest!!.header("User-Agent"))
+        assertEquals("first/1.0", requestThrough(interceptor).header("User-Agent"))
 
         provider.update("second/2.0 (new@example.com)")
-        val c2 = RecordingChain()
-        interceptor.intercept(c2)
-        assertEquals("second/2.0 (new@example.com)", c2.lastRequest!!.header("User-Agent"))
+        assertEquals("second/2.0 (new@example.com)", requestThrough(interceptor).header("User-Agent"))
     }
 
     @Test
     fun `blank user agent falls back to the default`() {
-        val provider = UserAgentProvider("")
-        val chain = RecordingChain()
-        NwsHeaderInterceptor(provider).intercept(chain)
-        assertEquals(UserAgentProvider.DEFAULT, chain.lastRequest!!.header("User-Agent"))
-    }
-
-    /** Minimal OkHttp Chain that captures the request and returns a canned 200. */
-    private class RecordingChain : Interceptor.Chain {
-        var lastRequest: Request? = null
-        private val original = Request.Builder().url("https://api.weather.gov/points/1,2").build()
-
-        override fun request(): Request = original
-
-        override fun proceed(request: Request): Response {
-            lastRequest = request
-            return Response.Builder()
-                .request(request)
-                .protocol(Protocol.HTTP_1_1)
-                .code(200)
-                .message("OK")
-                .body("{}".toResponseBody(null))
-                .build()
-        }
-
-        override fun connection(): Connection? = null
-        override fun call(): Call = throw UnsupportedOperationException()
-        override fun connectTimeoutMillis(): Int = 0
-        override fun withConnectTimeout(timeout: Int, unit: java.util.concurrent.TimeUnit): Interceptor.Chain = this
-        override fun readTimeoutMillis(): Int = 0
-        override fun withReadTimeout(timeout: Int, unit: java.util.concurrent.TimeUnit): Interceptor.Chain = this
-        override fun writeTimeoutMillis(): Int = 0
-        override fun withWriteTimeout(timeout: Int, unit: java.util.concurrent.TimeUnit): Interceptor.Chain = this
+        val request = requestThrough(NwsHeaderInterceptor(UserAgentProvider("")))
+        assertEquals(UserAgentProvider.DEFAULT, request.header("User-Agent"))
     }
 }

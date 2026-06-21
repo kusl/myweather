@@ -1,6 +1,7 @@
 package com.kusl.myweather.domain
 
 import com.kusl.myweather.core.GeoPoint
+import com.kusl.myweather.core.GridPoint
 import com.kusl.myweather.domain.model.AreaWeather
 
 /** The outcome of an area-weather request, modelled so the UI can react cleanly. */
@@ -22,4 +23,20 @@ interface WeatherRepository {
      * cache-aside throughout, serving stale data when the network is down.
      */
     suspend fun getAreaWeather(point: GeoPoint, radius: Int): AreaWeatherResult
+
+    /**
+     * Re-centre the neighborhood directly on an explicit grid [center] — e.g.
+     * when the user taps a neighbouring tile to make it the new middle cell.
+     *
+     * This skips the `/points` coordinate lookup (we already know the grid) and
+     * reuses the [timeZone] resolved for the current area. [label] becomes the
+     * card's display name (there's no city for an arbitrary cell). Forecasts are
+     * fetched cache-aside, exactly like [getAreaWeather].
+     */
+    suspend fun getAreaWeatherForGrid(
+        center: GridPoint,
+        radius: Int,
+        label: String?,
+        timeZone: String?,
+    ): AreaWeatherResult
 }

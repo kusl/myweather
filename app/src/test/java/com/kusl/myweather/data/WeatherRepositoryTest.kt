@@ -158,6 +158,28 @@ class WeatherRepositoryTest {
         assertEquals(WeatherRepositoryImpl.DEFAULT_FORECAST_TTL_MS, entry.expiresAtEpochMs - time.nowMs())
     }
 
+    @Test
+    fun `recenter on a grid assembles the matrix without a points lookup`() = runTest {
+        val center = GridPoint("AKQ", 84, 61)
+
+        val result = repo.getAreaWeatherForGrid(
+            center = center,
+            radius = 1,
+            label = "Selected grid cell",
+            timeZone = "America/New_York",
+        )
+
+        assertTrue(result is AreaWeatherResult.Success)
+        val area = (result as AreaWeatherResult.Success).area
+        assertEquals(center, area.primary.grid)
+        assertEquals(center, area.tiles.first { it.isPrimary }.grid)
+        assertEquals(9, area.tiles.size)             // centre + 8 neighbours
+        assertEquals(0, api.pointCallCount)          // grid path never hits /points
+        assertEquals("Selected grid cell", area.metadata.displayName)
+        assertEquals("America/New_York", area.metadata.timeZone)
+        assertFalse(area.fromCache)
+    }
+
     // ── helpers ───────────────────────────────────────────────────────────────
 
     private fun primeFreshMetadata(expiresInMs: Long = 30L * 24 * 60 * 60 * 1000) {

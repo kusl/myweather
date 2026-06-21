@@ -208,3 +208,161 @@ Error: Process completed with exit code 1.
 0s
 0s
 0s
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+`FakeWeatherRepository` is correct — both methods well-formed. Now a no-hallucination cross-check: my new main code references `NwsHeaderInterceptor`, `UserAgentProvider`, `PointMetadata` (the `query`/`grid`/`displayName` members), `AreaWeather`, `WeatherTile`, and `Forecast.current`. Let me confirm each exists with the exact shape I assumed.My line guesses were off (files are alphabetised), but I confirmed the interceptor reads `userAgentProvider.current()` fresh each call and sets exactly `User-Agent` + `Accept: application/geo+json` — matching my test. The README also re-confirms `isReturnDefaultValues = true`. Let me pin down the remaining shapes precisely with targeted greps.Nearly everything confirmed. Let me view the exact `PointMetadata.displayName` getter and the `AreaWeather` field names to be fully certain my named-argument constructions and the `displayName == "Selected grid cell"` assertion hold.Domain model confirmed exactly: `displayName` returns `city` when `state` is null (so `"Selected grid cell"` holds), `WeatherTile.forecast` is nullable (my `?.current` access is correct), and `AreaWeather` has the `metadata` field I used. 
+
+The repository impl is my most-rewritten production file, so let me diff it against the original to ensure the cache-aside/TTL/conditional-GET logic is byte-identical except for the intended changes (extracted `buildArea`, new `getAreaWeatherForGrid`, `Telemetry` swap, `TAG` removal).The diff is exactly the intended surgery: `Log`→`Telemetry`, `TAG` removed, the assembly extracted verbatim into `buildArea(...)`, and the new `getAreaWeatherForGrid`. The cache-aside/TTL/conditional-GET internals (`resolveMetadata`, `fetchForecast`, `computeTtlMs`, helpers) are byte-identical. Let me diff the remaining changed files to confirm each is similarly surgical.LocationProvider, DashboardUiState, and TileGrid are all surgical. Now the two largest behavioral files — `DashboardViewModel` and `DashboardScreen` — plus `SettingsScreen`. Let me diff them to confirm existing behavior is preserved and only the intended capabilities were added.`DashboardViewModel` and `SettingsScreen` are both surgical: every existing state transition is preserved (toasts are additive via `tryEmit`, so the current tests are unaffected), `refresh()` still falls back to `load(query)` when no recenter anchor is set, and the diagnostics view is purely additive. Let me diff the last file, `DashboardScreen`.`DashboardScreen` is surgical too — toast collection, the `Requesting` spinner (the core missing feedback), the labeled loading rows, and tile-tap recentering, all additive. Every changed file is verified.
+
+Final safety sweep: confirm there's no *other* `WeatherRepository` implementer I'd be breaking by adding a method, no other `TileGrid(` call site, and that the DI/ctor wiring is unaffected.Everything is verified — only two `WeatherRepository` implementers (both updated), the single `TileGrid` call site updated (and `onTileSelected` is defaulted anyway), and all constructor wiring is unchanged. The change set is complete, brace-balanced, every diff is surgical, and every symbol I reference is confirmed to exist with the exact shape I used.
+
+Let me present all the changed files.All 13 files are ready. Here's what changed and why, grounded in your actual dump and CI log.
+
+## The CI failure — root cause
+
+Your `ci.yml` runs `assembleDebug testDebugUnitTest lintDebug`; `build_apk.yml` runs only `assembleRelease`. The release build passed on the same commit, which told me the break was in the **unit-test source set**, not main code.
+
+The `fix.sh` from your "add claude response" commit bumped `okhttp = "4.12.0" → "5.4.0"` in the catalog. I pulled the real OkHttp 5.4.0 source to confirm the consequence: `okhttp3.Interceptor.Chain` gained a batch of new abstract members that didn't exist in 4.12 — `followSslRedirects`, `followRedirects`, `dns` / `withDns`, `socketFactory` / `withSocketFactory`, `retryOnConnectionFailure` / `withRetryOnConnectionFailure`, `authenticator`, and more. Your `UserAgentInterceptorTest` hand-implemented the full `Chain` as `RecordingChain`, so it stopped compiling — *"is not abstract and does not implement abstract member."* Main code only implements `Interceptor` (not `Chain`) and only touches `retrofit2.Response`, which is why `assembleRelease` was green.
+
+I also verified the other OkHttp 5 changes are **not** breaking here: `String.toResponseBody(null)` and `Headers.headersOf(...)` are unchanged, and `Response.body` becoming non-null doesn't matter since the tests pass non-null bodies. So `WeatherRepositoryTest` was fine; `RecordingChain` was the single point of failure.
+
+**The fix** (`UserAgentInterceptorTest.kt`): stop hand-rolling `Chain` entirely. The interceptor now runs inside a real `OkHttpClient` with a short-circuiting terminal interceptor that captures the outgoing request and returns a canned 200 without calling `chain.proceed()` — so no socket, no DNS, still a pure-JVM test. It's immune to future `Chain` additions and needs no new dependency (OkHttp is already on the test classpath). Same three assertions.
+
+## The three Dependabot PRs
+
+There's nothing to change in code for these — `fix.sh` already set all three in `gradle/libs.versions.toml`: `navigationCompose = 2.9.8`, `coroutines = 1.11.0`, `okhttp = 5.4.0`. The only fallout from those bumps was the test-compile break above. Once you push a commit carrying these versions plus the test fix, the PRs become no-ops; Dependabot will auto-close #5, #8, and #10 (or you can close them by hand). The coroutines-test APIs you use (`StandardTestDispatcher`, `runTest`, `advanceUntilIdle`) are unchanged in 1.11.0.
+
+## "Use my location" — the dead-air defect
+
+`requestDeviceLocation()` set `locationStatus = Requesting` immediately, but `DashboardScreen`'s `when (locationStatus)` only handled `PermissionDenied`/`Unavailable` — there was **no UI for `Requesting`**, and the spinner only appeared once `load()` started, i.e. after the fix already arrived. On a cold GPS start that's the "nothing happened" window.
+
+Fixes:
+- `DashboardScreen` now shows a labeled spinner ("Finding your location…") the moment a fix is requested, and a separate "Loading forecast…" row while the forecast loads.
+- A one-shot toast stream (`DashboardEvent` in `DashboardUiState.kt`, `events` `SharedFlow` in the ViewModel) surfaces work-started / succeeded / failed: "Finding your location…", "Weather updated", "Showing saved data — offline", "Couldn't get a location fix", etc.
+- `LocationProvider` now bounds the fresh fix with `withTimeoutOrNull(10s)` before falling back to last-known → `Unavailable`, so it can't hang the spinner indefinitely indoors/cold.
+- The location button is disabled while a request/load is in flight (no double-taps).
+
+## Logging / telemetry (local-only)
+
+`core/Telemetry.kt` is a process-wide object that mirrors breadcrumbs to Logcat (`adb logcat -s MyWeather`) and keeps the last 200 events in an in-memory ring buffer exposed as a `StateFlow`. No network sink, no analytics, nothing written to disk — consistent with the project's ethos. It's wired into app start, the location flow, and the weather/recenter flows, and surfaced read-only in **Settings → Diagnostics** (with a Clear button) so you can actually see what just happened. Your `testOptions.unitTests.isReturnDefaultValues = true` is already set, so the `android.util.Log` calls no-op safely in unit tests — **no `build.gradle.kts` change needed.**
+
+## Tap-to-recenter
+
+`TileGrid` makes filled, non-primary cells tappable (ripple + "Center on this cell" accessibility label; the centre cell and empty cells stay inert). Tapping calls `DashboardViewModel.recenterOnGrid(grid)`, which re-centres the matrix on that cell in one tap via a new `WeatherRepository.getAreaWeatherForGrid(center, radius, label, timeZone)`. That path skips the `/points` lookup (the grid is already known) and reuses the office time zone — correct because `GridMath.surrounding` keeps the same `gridId`. Re-centring is ephemeral, and `refresh()` now reloads whatever you're anchored to (recentred cell or original coordinate); picking a saved location from the Locations tab resets you to home, exactly as you described.
+
+## No regressions
+
+I extracted each original file from your dump and diffed it against my version — every change is surgical. The cache-aside / TTL / conditional-GET internals of `WeatherRepositoryImpl` are byte-identical; I only extracted the shared neighbourhood assembly into a private `buildArea(...)` (used by both paths) and added the recenter method. Existing ViewModel behavior is preserved (toasts are additive via `tryEmit`), so the current tests still pass. I added tests for the new behavior: a recenter test in `WeatherRepositoryTest` (asserts 9 tiles, **0** `/points` calls) and two in `DashboardViewModelTest` (recenter loads the cell; recenter is ignored before any area exists), and updated the test's `FakeWeatherRepository` to implement the new interface method. No deprecated APIs are used.
+
+The file names above are flat; drop them back at these paths:
+
+```
+app/src/test/java/com/kusl/myweather/data/UserAgentInterceptorTest.kt   ← CI fix
+app/src/main/java/com/kusl/myweather/domain/WeatherRepository.kt
+app/src/main/java/com/kusl/myweather/data/WeatherRepositoryImpl.kt
+app/src/main/java/com/kusl/myweather/ui/dashboard/DashboardViewModel.kt
+app/src/main/java/com/kusl/myweather/ui/dashboard/DashboardScreen.kt
+app/src/main/java/com/kusl/myweather/ui/components/TileGrid.kt
+app/src/main/java/com/kusl/myweather/ui/dashboard/DashboardUiState.kt
+app/src/main/java/com/kusl/myweather/data/location/LocationProvider.kt
+app/src/main/java/com/kusl/myweather/core/Telemetry.kt                  ← new file
+app/src/main/java/com/kusl/myweather/MyWeatherApp.kt
+app/src/main/java/com/kusl/myweather/ui/settings/SettingsScreen.kt
+app/src/test/java/com/kusl/myweather/ui/dashboard/DashboardViewModelTest.kt
+app/src/test/java/com/kusl/myweather/data/WeatherRepositoryTest.kt
+```
+
+One caveat I can't close from here: I verified the OkHttp 5.4.0 API against upstream source and checked syntax, symbol existence, and brace balance across all files, but this environment has no Android/Maven access, so I couldn't run an actual `./gradlew testDebugUnitTest`. The reasoning is grounded in your dump and the real 5.4.0 `Interceptor.Chain`, but the true confirmation is a green CI run after you push.
+
+23
+03
+
+It wrapped around to the next week 

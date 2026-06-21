@@ -1,6 +1,7 @@
 package com.kusl.myweather.ui.dashboard
 
 import android.Manifest
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -22,6 +23,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,6 +31,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -38,6 +41,7 @@ import com.kusl.myweather.ui.AppIcons
 import com.kusl.myweather.ui.components.ForecastCard
 import com.kusl.myweather.ui.components.TileGrid
 import com.kusl.myweather.ui.components.UpcomingPeriods
+import kotlinx.coroutines.flow.collect
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -48,11 +52,21 @@ fun DashboardScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var manualText by rememberSaveable { mutableStateOf("") }
+    val context = LocalContext.current
 
     // When navigated here with explicit coords (e.g. from a saved location), load them.
-    androidx.compose.runtime.LaunchedEffect(presetLat, presetLon) {
+    LaunchedEffect(presetLat, presetLon) {
         if (presetLat != null && presetLon != null) {
             viewModel.load(com.kusl.myweather.core.GeoPoint(presetLat, presetLon))
+        }
+    }
+
+    // Surface transient one-shot signals (work started / succeeded / failed) as toasts.
+    LaunchedEffect(Unit) {
+        viewModel.events.collect { event ->
+            when (event) {
+                is DashboardEvent.Message -> Toast.makeText(context, event.text, Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -87,6 +101,7 @@ fun DashboardScreen(
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),
+                    enabled = state.locationStatus != LocationStatus.Requesting && !state.isLoading,
                 ) {
                     Icon(AppIcons.LocationOn, contentDescription = null)
                     Text(
@@ -114,6 +129,12 @@ fun DashboardScreen(
                 }
             }
 
+            // Progress: getting a device fix can take a while on a cold start, so
+            // show feedback immediately rather than leaving the screen looking idle.
+            if (state.locationStatus == LocationStatus.Requesting) {
+                item { LoadingRow("Finding your location\u2026") }
+            }
+
             // Status / banners
             when (state.locationStatus) {
                 LocationStatus.PermissionDenied -> item {
@@ -130,12 +151,7 @@ fun DashboardScreen(
             }
 
             if (state.isLoading) {
-                item {
-                    Row(
-                        Modifier.fillMaxWidth().padding(24.dp),
-                        horizontalArrangement = Arrangement.Center,
-                    ) { CircularProgressIndicator() }
-                }
+                item { LoadingRow("Loading forecast\u2026") }
             }
 
             state.message?.let { msg ->
@@ -145,9 +161,17 @@ fun DashboardScreen(
             val area = state.area
             if (area != null) {
                 item { ForecastCard(metadata = area.metadata, forecast = area.primary) }
-                item { TileGrid(tiles = area.tiles) }
+                item {
+                    TileGrid(
+                        tiles = area.tiles,
+                        onTileSelected = { viewModel.recenterOnGrid(it.grid) },
+                    )
+                }
                 item { UpcomingPeriods(periods = area.primary.periods) }
-            } else if (!state.isLoading && state.message == null) {
+            } else if (!state.isLoading &&
+                state.message == null &&
+                state.locationStatus != LocationStatus.Requesting
+            ) {
                 item {
                     Text(
                         "Use your location or enter coordinates to load a U.S. forecast.",
@@ -159,6 +183,18 @@ fun DashboardScreen(
 
             item { Column(Modifier.padding(bottom = 8.dp)) {} }
         }
+    }
+}
+
+@Composable
+private fun LoadingRow(text: String) {
+    Row(
+        Modifier.fillMaxWidth().padding(vertical = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        CircularProgressIndicator()
+        Text(text, style = MaterialTheme.typography.bodyMedium)
     }
 }
 
