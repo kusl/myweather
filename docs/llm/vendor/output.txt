@@ -8,7 +8,7 @@ kushal@fedora:~/src/kotlin/myweather$ cd ~/src/kotlin/myweather/; time bash expo
 
 DUMP METADATA
 ═════════════════════════════════════════════════════════════════════════════════
-  Generated at   : 2026-06-21T01:37:35-04:00
+  Generated at   : 2026-06-21T04:43:45-04:00
   Generator      : export.sh
   Host           : fedora
   User           : kushal
@@ -18,12 +18,12 @@ REPOSITORY METADATA
 ═════════════════════════════════════════════════════════════════════════════════
   Repository root: /home/kushal/src/kotlin/myweather
   Branch         : main
-  Commit (full)  : e440a2e729a7f36b9c8f40aece195e5407863552
-  Commit (short) : e440a2e
-  Commit date    : 2026-06-21 01:37:28 -0400
-  Commit message : use per build versions with claude
+  Commit (full)  : afdcd8b6f95a73f86f0e8b72a7891a4e47d73b3a
+  Commit (short) : afdcd8b
+  Commit date    : 2026-06-21 04:43:34 -0400
+  Commit message : add response by claude
   Remote origin  : git@github.com:kusl/myweather.git
-  Files included : 82
+  Files included : 84
   Excluded path  : docs/llm/
 
 GIT WORKING TREE STATUS (first 20 lines)
@@ -396,7 +396,7 @@ FOOTER
 mv -f "$TMP_FILE" "$OUTPUT_FILE"
 
 ################################################################################
-# FILE TREE  (all 82 included files)
+# FILE TREE  (all 84 included files)
 ################################################################################
 .
 .
@@ -502,11 +502,13 @@ mv -f "$TMP_FILE" "$OUTPUT_FILE"
 │                       └── myweather
 │                           ├── core
 │                           │   ├── GeoPointTest.kt
-│                           │   └── GridMathTest.kt
+│                           │   ├── GridMathTest.kt
+│                           │   └── TelemetryTest.kt
 │                           ├── data
 │                           │   ├── CacheFreshnessTest.kt
 │                           │   ├── mapper
 │                           │   │   └── NwsMapperTest.kt
+│                           │   ├── SavedLocationRepositoryTest.kt
 │                           │   ├── UserAgentInterceptorTest.kt
 │                           │   └── WeatherRepositoryTest.kt
 │                           └── ui
@@ -1255,15 +1257,15 @@ data class GridPoint(val gridId: String, val gridX: Int, val gridY: Int) {
   File name:             Telemetry.kt
   Relative path:         app/src/main/java/com/kusl/myweather/core/Telemetry.kt
   Absolute path:         /home/kushal/src/kotlin/myweather/app/src/main/java/com/kusl/myweather/core/Telemetry.kt
-  Size:                  3.2 KiB (3318 bytes)
-  Last modified:         2026-06-21 00:10:28.883017039 -0400
+  Size:                  4.6 KiB (4721 bytes)
+  Last modified:         2026-06-21 04:41:10.039537592 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 16482174
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               946275bd60e85c4956b5d0db54bd401421e40053010f39b67e342aecf0eb57ed
-  Last git commit:       d9a1b28 2026-06-21 00:12:13 -0400 add claude changes
+  SHA-256:               0509f80731855847b3d24718c38d080cbed2c7b3f006d3654ba2a828da21a6a9
+  Last git commit:       afdcd8b 2026-06-21 04:43:34 -0400 add response by claude
 
 --- CONTENT ---
 package com.kusl.myweather.core
@@ -1272,6 +1274,9 @@ import android.util.Log
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 /**
  * Tiny, dependency-free, in-process telemetry. It does two things and only two:
@@ -1309,6 +1314,10 @@ object Telemetry {
     private const val CAPACITY = 200
     private const val LOG_TAG = "MyWeather"
 
+    /** Timestamp format for [exportText]; local time, matching the on-screen list. */
+    private val EXPORT_TIME_FORMAT: DateTimeFormatter =
+        DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneId.systemDefault())
+
     private val lock = Any()
     private val buffer = ArrayDeque<Entry>(CAPACITY)
 
@@ -1328,6 +1337,28 @@ object Telemetry {
         synchronized(lock) {
             buffer.clear()
             _entries.value = emptyList()
+        }
+    }
+
+    /**
+     * Render the retained events as a single multi-line string for sharing (the
+     * Diagnostics "Copy" action). Oldest-first — the natural reading order of a
+     * log file — with one event per line:
+     *
+     *     2026-06-21 14:23:01 I [Location] requesting fix via fused
+     *
+     * Timestamps use the device's local time zone, matching what the Diagnostics
+     * list shows on screen. This copies the *entire* buffer (up to [CAPACITY]),
+     * not just the subset rendered on screen. Returns an empty string when there
+     * is nothing to export. Like the rest of [Telemetry] this stays local-only:
+     * the caller hands the result to the clipboard, never to the network.
+     */
+    fun exportText(): String {
+        val snapshot = synchronized(lock) { buffer.toList() }
+        if (snapshot.isEmpty()) return ""
+        return snapshot.joinToString("\n") { entry ->
+            "${EXPORT_TIME_FORMAT.format(Instant.ofEpochMilli(entry.epochMs))} " +
+                "${entry.level.name.first()} [${entry.tag}] ${entry.message}"
         }
     }
 
@@ -2229,19 +2260,20 @@ val WeatherJson: Json = Json {
   File name:             SavedLocationRepository.kt
   Relative path:         app/src/main/java/com/kusl/myweather/data/SavedLocationRepository.kt
   Absolute path:         /home/kushal/src/kotlin/myweather/app/src/main/java/com/kusl/myweather/data/SavedLocationRepository.kt
-  Size:                  1.2 KiB (1288 bytes)
-  Last modified:         2026-06-19 16:55:14.000000000 -0400
+  Size:                  2.0 KiB (2132 bytes)
+  Last modified:         2026-06-21 04:40:39.186961472 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 16257576
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               16a51274a1e089185055f1840412d782aab043a575faa0b37e0d6a1f7edff5ca
-  Last git commit:       0386d8e 2026-06-20 08:06:03 -0400 move one folder up
+  SHA-256:               0ce0b76ffa1a6a1124123af8ca700d68e3a40398e2af82ee49dc011a63e19ba7
+  Last git commit:       afdcd8b 2026-06-21 04:43:34 -0400 add response by claude
 
 --- CONTENT ---
 package com.kusl.myweather.data
 
+import com.kusl.myweather.core.GeoPoint
 import com.kusl.myweather.data.local.dao.SavedLocationDao
 import com.kusl.myweather.data.local.entity.SavedLocationEntity
 import com.kusl.myweather.domain.model.SavedLocation
@@ -2265,6 +2297,23 @@ class SavedLocationRepository(private val dao: SavedLocationDao) {
                 createdAtEpochMs = System.currentTimeMillis(),
             ),
         )
+
+    /**
+     * Save [point] under [label] unless an entry already exists at the same
+     * coordinate (compared at the NWS 4-dp granularity, ~11 m). This lets the
+     * dashboard auto-capture a "use my location" fix without piling up
+     * duplicates when the user re-checks the same place. Returns the new row id,
+     * or null when a matching location was already saved.
+     */
+    suspend fun addCurrentIfAbsent(point: GeoPoint, label: String): Long? {
+        val key = point.toCacheKey()
+        val alreadySaved = dao.getAllOnce().any { row ->
+            GeoPoint.isValid(row.latitude, row.longitude) &&
+                GeoPoint(row.latitude, row.longitude).toCacheKey() == key
+        }
+        if (alreadySaved) return null
+        return add(label, point.latitude, point.longitude)
+    }
 
     suspend fun delete(id: Long) = dao.deleteById(id)
 
@@ -2735,15 +2784,15 @@ private fun Response<*>.etag(): String? = headers()["ETag"]
   File name:             AppContainer.kt
   Relative path:         app/src/main/java/com/kusl/myweather/di/AppContainer.kt
   Absolute path:         /home/kushal/src/kotlin/myweather/app/src/main/java/com/kusl/myweather/di/AppContainer.kt
-  Size:                  3.1 KiB (3245 bytes)
-  Last modified:         2026-06-19 17:03:38.000000000 -0400
+  Size:                  3.2 KiB (3290 bytes)
+  Last modified:         2026-06-21 04:40:47.731644190 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 16257579
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               de0683804c04224b1d1f9687e3e8050f9a5007f2011b2fdcb6d8b95fcfa67a40
-  Last git commit:       0386d8e 2026-06-20 08:06:03 -0400 move one folder up
+  SHA-256:               c909de772a18545a57e1433a13139a5c71ce3da2a9bc3c1e4ead340a4c3104f3
+  Last git commit:       afdcd8b 2026-06-21 04:43:34 -0400 add response by claude
 
 --- CONTENT ---
 package com.kusl.myweather.di
@@ -2813,7 +2862,9 @@ class AppContainer(context: Context) {
 
     /** One factory that knows how to build every ViewModel from this container. */
     val viewModelFactory: ViewModelProvider.Factory = viewModelFactory {
-        initializer { DashboardViewModel(weatherRepository, locationProvider, settingsRepository) }
+        initializer {
+            DashboardViewModel(weatherRepository, locationProvider, settingsRepository, savedLocationRepository)
+        }
         initializer { LocationsViewModel(savedLocationRepository) }
         initializer { SettingsViewModel(settingsRepository) }
     }
@@ -3129,15 +3180,15 @@ class MyWeatherApp : Application() {
   File name:             AppIcons.kt
   Relative path:         app/src/main/java/com/kusl/myweather/ui/AppIcons.kt
   Absolute path:         /home/kushal/src/kotlin/myweather/app/src/main/java/com/kusl/myweather/ui/AppIcons.kt
-  Size:                  2.4 KiB (2554 bytes)
-  Last modified:         2026-06-19 16:55:59.000000000 -0400
+  Size:                  2.7 KiB (2810 bytes)
+  Last modified:         2026-06-21 04:41:18.051349901 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 16257531
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               78840dfe8ebdf95385394243b04e51fd3172ec0c172c4b6dda2053fca2687d21
-  Last git commit:       0386d8e 2026-06-20 08:06:03 -0400 move one folder up
+  SHA-256:               75019ba597903b27d93f81918c6c38148250cc56a2e683b35b1077b39ae70ce0
+  Last git commit:       afdcd8b 2026-06-21 04:43:34 -0400 add response by claude
 
 --- CONTENT ---
 package com.kusl.myweather.ui
@@ -3199,6 +3250,12 @@ object AppIcons {
     }
     val Warning: ImageVector by lazy {
         icon("Warning", "M1,21h22L12,2 1,21zM13,18h-2v-2h2v2zM13,14h-2v-4h2v4z")
+    }
+    val ContentCopy: ImageVector by lazy {
+        icon(
+            "ContentCopy",
+            "M16,1H4C2.9,1 2,1.9 2,3v14h2V3h12V1zM19,5H8C6.9,5 6,5.9 6,7v14c0,1.1 0.9,2 2,2h11c1.1,0 2,-0.9 2,-2V7c0,-1.1 -0.9,-2 -2,-2zM19,21H8V7h11v14z",
+        )
     }
 }
 
@@ -3844,15 +3901,15 @@ sealed interface DashboardEvent {
   File name:             DashboardViewModel.kt
   Relative path:         app/src/main/java/com/kusl/myweather/ui/dashboard/DashboardViewModel.kt
   Absolute path:         /home/kushal/src/kotlin/myweather/app/src/main/java/com/kusl/myweather/ui/dashboard/DashboardViewModel.kt
-  Size:                  7.9 KiB (8149 bytes)
-  Last modified:         2026-06-21 00:08:36.007642958 -0400
+  Size:                  9.6 KiB (9846 bytes)
+  Last modified:         2026-06-21 04:40:28.933035860 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 16257548
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               9eb0051bf859adb35c8adb81539444eaa38716c0536630b31a0de78b8c640fd0
-  Last git commit:       d9a1b28 2026-06-21 00:12:13 -0400 add claude changes
+  SHA-256:               047a99b2c813d2b4137a27e3309f77df95ff273382a4d711de83b94823bfc579
+  Last git commit:       afdcd8b 2026-06-21 04:43:34 -0400 add response by claude
 
 --- CONTENT ---
 package com.kusl.myweather.ui.dashboard
@@ -3862,6 +3919,7 @@ import androidx.lifecycle.viewModelScope
 import com.kusl.myweather.core.GeoPoint
 import com.kusl.myweather.core.GridPoint
 import com.kusl.myweather.core.Telemetry
+import com.kusl.myweather.data.SavedLocationRepository
 import com.kusl.myweather.data.location.LocationResult
 import com.kusl.myweather.data.location.LocationSource
 import com.kusl.myweather.data.settings.SettingsRepository
@@ -3882,6 +3940,7 @@ class DashboardViewModel(
     private val weatherRepository: WeatherRepository,
     private val locationProvider: LocationSource,
     private val settingsRepository: SettingsRepository,
+    private val savedLocationRepository: SavedLocationRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(DashboardUiState())
@@ -3918,7 +3977,9 @@ class DashboardViewModel(
             when (val result = locationProvider.currentLocation()) {
                 is LocationResult.Available -> {
                     _uiState.update { it.copy(locationStatus = LocationStatus.Idle) }
-                    load(result.point)
+                    // Persist a device fix to the saved list (deduped) once the
+                    // forecast loads, so it picks up the resolved place name.
+                    load(result.point, saveToList = true)
                 }
                 LocationResult.PermissionDenied -> {
                     _uiState.update { it.copy(locationStatus = LocationStatus.PermissionDenied) }
@@ -3945,7 +4006,14 @@ class DashboardViewModel(
         load(point)
     }
 
-    fun load(point: GeoPoint) {
+    /**
+     * Load the forecast for [point]. When [saveToList] is true (the "use my
+     * location" path) and the load succeeds, the coordinate is also added to the
+     * saved-locations list — deduped, and labelled with the resolved place name.
+     * Manual entry and re-opening a saved location pass false, so they never
+     * auto-save.
+     */
+    fun load(point: GeoPoint, saveToList: Boolean = false) {
         viewModelScope.launch {
             anchorGrid = null
             _uiState.update {
@@ -3965,6 +4033,7 @@ class DashboardViewModel(
                         )
                     }
                     toast(if (result.area.fromCache) OFFLINE_TOAST else "Weather updated")
+                    if (saveToList) saveCurrentLocation(point, result.area.metadata.displayName)
                 }
                 AreaWeatherResult.NoCoverage -> {
                     _uiState.update {
@@ -4038,6 +4107,23 @@ class DashboardViewModel(
         }
     }
 
+    /**
+     * Add the just-resolved current location to the saved list, deduped against
+     * what's already stored (so repeated "use my location" taps don't pile up).
+     * Uses the NWS-resolved place name (e.g. "Norfolk, VA") as the label, falling
+     * back to a generic one if NWS didn't return a city/state.
+     */
+    private suspend fun saveCurrentLocation(point: GeoPoint, displayName: String?) {
+        val label = displayName?.takeIf { it.isNotBlank() } ?: DEFAULT_SAVED_LABEL
+        val newId = savedLocationRepository.addCurrentIfAbsent(point, label)
+        if (newId != null) {
+            Telemetry.i("Dashboard", "auto-saved current location '$label'")
+            toast("Saved \u201C$label\u201D to your locations")
+        } else {
+            Telemetry.d("Dashboard", "current location already saved; not duplicating")
+        }
+    }
+
     private fun toast(text: String) {
         _events.tryEmit(DashboardEvent.Message(text))
     }
@@ -4045,6 +4131,7 @@ class DashboardViewModel(
     private companion object {
         const val RECENTER_LABEL = "Selected grid cell"
         const val OFFLINE_TOAST = "Showing saved data \u2014 offline"
+        const val DEFAULT_SAVED_LABEL = "My location"
     }
 }
 
@@ -4422,29 +4509,35 @@ private fun isCurrent(currentRoute: String?, dest: Dest): Boolean = when (dest) 
   File name:             SettingsScreen.kt
   Relative path:         app/src/main/java/com/kusl/myweather/ui/settings/SettingsScreen.kt
   Absolute path:         /home/kushal/src/kotlin/myweather/app/src/main/java/com/kusl/myweather/ui/settings/SettingsScreen.kt
-  Size:                  7.3 KiB (7477 bytes)
-  Last modified:         2026-06-21 00:10:53.768635673 -0400
+  Size:                  8.9 KiB (9141 bytes)
+  Last modified:         2026-06-21 04:40:58.755533033 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 16257544
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               b9d545cbc6de900e3ac383f23774c0073b42529e52d2d78b02d958dcc2c8339f
-  Last git commit:       d9a1b28 2026-06-21 00:12:13 -0400 add claude changes
+  SHA-256:               6f4b58a23012ea79999286bb6290e9fb0ba0bfa06179434c22fc636756f8fc2a
+  Last git commit:       afdcd8b 2026-06-21 04:43:34 -0400 add response by claude
 
 --- CONTENT ---
 package com.kusl.myweather.ui.settings
 
+import android.content.ClipData
+import android.content.ClipboardManager
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -4459,6 +4552,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
@@ -4466,6 +4560,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kusl.myweather.R
 import com.kusl.myweather.core.Telemetry
 import com.kusl.myweather.data.settings.SettingsRepository
+import com.kusl.myweather.ui.AppIcons
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -4547,10 +4642,14 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
  * user (or a developer) can see what the app just did — handy for diagnosing a
  * slow location fix or a failed request. This data is local-only: it is never
  * uploaded or persisted.
+ *
+ * "Copy" places the entire retained log (not just the rows shown below) on the
+ * clipboard so it can be pasted into a bug report; "Clear" wipes the buffer.
  */
 @Composable
 private fun DiagnosticsSection() {
     val logs by Telemetry.entries.collectAsStateWithLifecycle()
+    val context = LocalContext.current
     val timeFormatter = remember {
         DateTimeFormatter.ofPattern("HH:mm:ss").withZone(ZoneId.systemDefault())
     }
@@ -4562,7 +4661,29 @@ private fun DiagnosticsSection() {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text("Diagnostics", style = MaterialTheme.typography.titleMedium)
-            TextButton(onClick = { Telemetry.clear() }, enabled = logs.isNotEmpty()) { Text("Clear") }
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                TextButton(
+                    onClick = {
+                        val export = Telemetry.exportText()
+                        if (export.isNotEmpty()) {
+                            // Platform clipboard (typed accessor) — no Compose clipboard
+                            // API churn, and on API 34+ the OS shows its own "Copied"
+                            // confirmation, so we add no toast of our own.
+                            context.getSystemService(ClipboardManager::class.java)
+                                ?.setPrimaryClip(ClipData.newPlainText("MyWeather diagnostics", export))
+                        }
+                    },
+                    enabled = logs.isNotEmpty(),
+                ) {
+                    Icon(AppIcons.ContentCopy, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(4.dp))
+                    Text("Copy")
+                }
+                TextButton(onClick = { Telemetry.clear() }, enabled = logs.isNotEmpty()) { Text("Clear") }
+            }
         }
         Text(
             "A local-only activity log to help debug issues like a slow location fix. " +
@@ -5271,6 +5392,75 @@ class GridMathTest {
 
 
 ################################################################################
+# FILE: app/src/test/java/com/kusl/myweather/core/TelemetryTest.kt
+################################################################################
+
+--- METADATA ---
+  File name:             TelemetryTest.kt
+  Relative path:         app/src/test/java/com/kusl/myweather/core/TelemetryTest.kt
+  Absolute path:         /home/kushal/src/kotlin/myweather/app/src/test/java/com/kusl/myweather/core/TelemetryTest.kt
+  Size:                  1.5 KiB (1542 bytes)
+  Last modified:         2026-06-21 04:42:32.670314410 -0400
+  Permissions:           -rw-r--r--
+  Owner:                 kushal:kushal
+  Inode:                 16504747
+  Hard links:            1
+  MIME type:             text/x-c++
+  SHA-256:               2253f8f4c300e818c1b285e05738eb0aa80174233ba2c806ed363b5093a0fcf1
+  Last git commit:       afdcd8b 2026-06-21 04:43:34 -0400 add response by claude
+
+--- CONTENT ---
+package com.kusl.myweather.core
+
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Before
+import org.junit.Test
+
+/**
+ * [Telemetry] is a process-wide singleton, so each test starts from a clean
+ * buffer. The Logcat calls inside [Telemetry] are inert here because the module
+ * sets `testOptions.unitTests.isReturnDefaultValues = true`.
+ *
+ * Timestamps are rendered in the device/JVM local zone, so the assertions check
+ * structure and content (ordering, level letter, tag, message) rather than the
+ * exact time text, keeping the test independent of the runner's time zone.
+ */
+class TelemetryTest {
+
+    @Before
+    fun setUp() = Telemetry.clear()
+
+    @Test
+    fun `exportText is empty when there are no events`() {
+        assertEquals("", Telemetry.exportText())
+    }
+
+    @Test
+    fun `exportText renders one line per event, oldest first`() {
+        Telemetry.i("Location", "requesting fix")
+        Telemetry.w("Net", "slow response")
+        Telemetry.e("Net", "boom")
+
+        val lines = Telemetry.exportText().lines()
+        assertEquals(3, lines.size)
+        assertTrue(lines[0].contains("I [Location] requesting fix"))
+        assertTrue(lines[1].contains("W [Net] slow response"))
+        assertTrue(lines[2].contains("E [Net] boom"))
+    }
+
+    @Test
+    fun `clear empties the export`() {
+        Telemetry.i("Location", "requesting fix")
+        assertTrue(Telemetry.exportText().isNotEmpty())
+
+        Telemetry.clear()
+        assertEquals("", Telemetry.exportText())
+    }
+}
+
+
+################################################################################
 # FILE: app/src/test/java/com/kusl/myweather/data/CacheFreshnessTest.kt
 ################################################################################
 
@@ -5438,6 +5628,88 @@ class NwsMapperTest {
         val body = """{"properties":{"gridId":"BOX","gridX":1,"gridY":2,"unknownThing":{"a":1},"extra":[1,2,3]}}"""
         val dto = json.decodeFromString<PointResponseDto>(body)
         assertEquals("BOX", NwsMappers.toPointMetadata(GeoPoint(42.0, -71.0), dto)!!.gridId)
+    }
+}
+
+
+################################################################################
+# FILE: app/src/test/java/com/kusl/myweather/data/SavedLocationRepositoryTest.kt
+################################################################################
+
+--- METADATA ---
+  File name:             SavedLocationRepositoryTest.kt
+  Relative path:         app/src/test/java/com/kusl/myweather/data/SavedLocationRepositoryTest.kt
+  Absolute path:         /home/kushal/src/kotlin/myweather/app/src/test/java/com/kusl/myweather/data/SavedLocationRepositoryTest.kt
+  Size:                  2.1 KiB (2242 bytes)
+  Last modified:         2026-06-21 04:43:08.595617507 -0400
+  Permissions:           -rw-r--r--
+  Owner:                 kushal:kushal
+  Inode:                 16504770
+  Hard links:            1
+  MIME type:             text/x-c++
+  SHA-256:               14b47bd201067646ae0a853c8796f3f6b261d3a52f194d55530cb43a5e7fd73c
+  Last git commit:       afdcd8b 2026-06-21 04:43:34 -0400 add response by claude
+
+--- CONTENT ---
+package com.kusl.myweather.data
+
+import com.kusl.myweather.core.GeoPoint
+import com.kusl.myweather.data.local.dao.SavedLocationDao
+import com.kusl.myweather.data.local.entity.SavedLocationEntity
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
+import org.junit.Test
+
+class SavedLocationRepositoryTest {
+
+    @Test
+    fun `addCurrentIfAbsent saves a new coordinate and dedupes by the 4dp NWS key`() = runTest {
+        val repo = SavedLocationRepository(FakeSavedLocationDao())
+
+        // First capture of a fresh coordinate is saved.
+        val firstId = repo.addCurrentIfAbsent(GeoPoint(36.85, -76.28), "Norfolk, VA")
+        assertNotNull(firstId)
+        assertEquals(1, repo.getAllOnce().size)
+
+        // A re-check within ~11 m rounds to the same 4-dp cache key, so it's skipped.
+        val dupId = repo.addCurrentIfAbsent(GeoPoint(36.850049, -76.280049), "Norfolk again")
+        assertNull(dupId)
+        assertEquals(1, repo.getAllOnce().size)
+
+        // A clearly different coordinate is saved as a second entry.
+        val secondId = repo.addCurrentIfAbsent(GeoPoint(40.7128, -74.0060), "New York, NY")
+        assertNotNull(secondId)
+        assertEquals(2, repo.getAllOnce().size)
+    }
+}
+
+/** In-memory [SavedLocationDao] with an auto-incrementing id, like Room's. */
+private class FakeSavedLocationDao : SavedLocationDao {
+    private val store = linkedMapOf<Long, SavedLocationEntity>()
+    private var nextId = 1L
+
+    override fun observeAll(): Flow<List<SavedLocationEntity>> =
+        flowOf(store.values.sortedBy { it.createdAtEpochMs })
+
+    override suspend fun getAllOnce(): List<SavedLocationEntity> =
+        store.values.sortedBy { it.createdAtEpochMs }
+
+    override suspend fun insert(entity: SavedLocationEntity): Long {
+        val id = if (entity.id == 0L) nextId++ else entity.id
+        store[id] = entity.copy(id = id)
+        return id
+    }
+
+    override suspend fun delete(entity: SavedLocationEntity) {
+        store.remove(entity.id)
+    }
+
+    override suspend fun deleteById(id: Long) {
+        store.remove(id)
     }
 }
 
@@ -5866,21 +6138,24 @@ private class MutableTimeSource(private var now: Long) : TimeSource {
   File name:             DashboardViewModelTest.kt
   Relative path:         app/src/test/java/com/kusl/myweather/ui/dashboard/DashboardViewModelTest.kt
   Absolute path:         /home/kushal/src/kotlin/myweather/app/src/test/java/com/kusl/myweather/ui/dashboard/DashboardViewModelTest.kt
-  Size:                  7.3 KiB (7507 bytes)
-  Last modified:         2026-06-21 00:11:16.025679255 -0400
+  Size:                  9.7 KiB (10002 bytes)
+  Last modified:         2026-06-21 04:41:29.772727151 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 16257507
   Hard links:            1
   MIME type:             text/x-c++
-  SHA-256:               8bbf57de9168e3aa9e8d876795144c19b1792ecb224244d7e1328e916490f6b4
-  Last git commit:       d9a1b28 2026-06-21 00:12:13 -0400 add claude changes
+  SHA-256:               bf231f9f642551425b9599d9c6b429930726a7a3fd021de817d56cca1bb58979
+  Last git commit:       afdcd8b 2026-06-21 04:43:34 -0400 add response by claude
 
 --- CONTENT ---
 package com.kusl.myweather.ui.dashboard
 
 import com.kusl.myweather.core.GeoPoint
 import com.kusl.myweather.core.GridPoint
+import com.kusl.myweather.data.SavedLocationRepository
+import com.kusl.myweather.data.local.dao.SavedLocationDao
+import com.kusl.myweather.data.local.entity.SavedLocationEntity
 import com.kusl.myweather.data.location.LocationResult
 import com.kusl.myweather.data.location.LocationSource
 import com.kusl.myweather.data.settings.SettingsRepository
@@ -5920,7 +6195,8 @@ class DashboardViewModelTest {
         repo: WeatherRepository,
         location: LocationSource = FakeLocationSource(),
         radius: Int = 1,
-    ) = DashboardViewModel(repo, location, FakeSettings(radius))
+        saved: SavedLocationRepository = SavedLocationRepository(FakeSavedLocationDao()),
+    ) = DashboardViewModel(repo, location, FakeSettings(radius), saved)
 
     @Test
     fun `successful load exposes area and clears message`() = runTest(dispatcher) {
@@ -5996,6 +6272,43 @@ class DashboardViewModelTest {
         advanceUntilIdle()
         assertEquals(1, repo.callCount)
         assertNotNull(vm.uiState.value.area)
+    }
+
+    @Test
+    fun `device location is auto-saved exactly once`() = runTest(dispatcher) {
+        val saved = SavedLocationRepository(FakeSavedLocationDao())
+        val repo = FakeWeatherRepository(AreaWeatherResult.Success(sampleArea(false)))
+        val vm = viewModel(
+            repo,
+            location = FakeLocationSource(
+                permission = true,
+                result = LocationResult.Available(GeoPoint(36.85, -76.28)),
+            ),
+            saved = saved,
+        )
+
+        // Two "use my location" taps for the same coordinate.
+        vm.requestDeviceLocation()
+        advanceUntilIdle()
+        vm.requestDeviceLocation()
+        advanceUntilIdle()
+
+        // Saved once (deduped on the 4-dp cache key), labelled with the NWS place name.
+        val rows = saved.getAllOnce()
+        assertEquals(1, rows.size)
+        assertEquals("Norfolk, VA", rows.first().label)
+    }
+
+    @Test
+    fun `manual load does not auto-save`() = runTest(dispatcher) {
+        val saved = SavedLocationRepository(FakeSavedLocationDao())
+        val repo = FakeWeatherRepository(AreaWeatherResult.Success(sampleArea(false)))
+        val vm = viewModel(repo, saved = saved)
+
+        vm.load(GeoPoint(36.85, -76.28)) // manual path: saveToList defaults to false
+        advanceUntilIdle()
+
+        assertTrue(saved.getAllOnce().isEmpty())
     }
 
     @Test
@@ -6077,6 +6390,32 @@ private class FakeSettings(private val radius: Int) : SettingsRepository {
     override val neighborhoodRadius: Flow<Int> = flowOf(radius)
     override suspend fun setUserAgent(value: String) = Unit
     override suspend fun setNeighborhoodRadius(value: Int) = Unit
+}
+
+/** In-memory [SavedLocationDao] with an auto-incrementing id, like Room's. */
+private class FakeSavedLocationDao : SavedLocationDao {
+    private val store = linkedMapOf<Long, SavedLocationEntity>()
+    private var nextId = 1L
+
+    override fun observeAll(): Flow<List<SavedLocationEntity>> =
+        flowOf(store.values.sortedBy { it.createdAtEpochMs })
+
+    override suspend fun getAllOnce(): List<SavedLocationEntity> =
+        store.values.sortedBy { it.createdAtEpochMs }
+
+    override suspend fun insert(entity: SavedLocationEntity): Long {
+        val id = if (entity.id == 0L) nextId++ else entity.id
+        store[id] = entity.copy(id = id)
+        return id
+    }
+
+    override suspend fun delete(entity: SavedLocationEntity) {
+        store.remove(entity.id)
+    }
+
+    override suspend fun deleteById(id: Long) {
+        store.remove(id)
+    }
 }
 
 
@@ -7168,18 +7507,18 @@ toolchainVersion=21
   File name:             libs.versions.toml
   Relative path:         gradle/libs.versions.toml
   Absolute path:         /home/kushal/src/kotlin/myweather/gradle/libs.versions.toml
-  Size:                  5.8 KiB (6026 bytes)
-  Last modified:         2026-06-20 13:31:54.767438980 -0400
+  Size:                  5.8 KiB (6021 bytes)
+  Last modified:         2026-06-21 04:43:18.445303371 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 16460673
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               250e2c4071c770dfc11394ad17ea49fee758414e2971d5c2d28a770f2f68c964
-  Last git commit:       5d158c5 2026-06-20 13:32:03 -0400 add claude response
+  SHA-256:               3d4c180638b50c309ef630d7728aef073f2a75d5ac7dd94df5a87f30d63890e0
+  Last git commit:       afdcd8b 2026-06-21 04:43:34 -0400 add response by claude
 
 --- CONTENT ---
-# ─────────────────────────────────────────────────────────────────────────────
+# ────────────────────────────────────────────────────────────────────────────
 # Central version catalog. This is the single source of truth for dependency
 # and plugin versions; modules reference these aliases via `libs.*`.
 #
@@ -7187,7 +7526,7 @@ toolchainVersion=21
 # the build is reproducible; bump them here (or via Renovate/Dependabot) and the
 # whole project updates in one place. CI (`.github/workflows`) is the source of
 # truth for whether a given set actually builds.
-# ─────────────────────────────────────────────────────────────────────────────
+# ────────────────────────────────────────────────────────────────────────────
 [versions]
 # Build toolchain ----------------------------------------------------------------
 agp = "9.2.1"                  # Android Gradle Plugin
@@ -7195,17 +7534,17 @@ kotlin = "2.4.0"               # Kotlin (K2). Compose-compiler & serialization p
 ksp = "2.3.9"                  # KSP2 — decoupled versioning; 2.3.9 supports Kotlin 2.2+ (incl. 2.4.0)
 
 # AndroidX / Jetpack -------------------------------------------------------------
-coreKtx = "1.15.0"
+coreKtx = "1.19.0"
 lifecycle = "2.11.0"
 activityCompose = "1.13.0"
-composeBom = "2026.05.00"      # Pins all androidx.compose.* artifact versions together
+composeBom = "2026.06.00"      # Pins all androidx.compose.* artifact versions together
 navigationCompose = "2.9.8"
-datastore = "1.1.7"
+datastore = "1.2.1"
 room = "2.8.4"                 # Room 2.x (maintenance line); Kotlin-codegen via KSP
 
 # Kotlinx ------------------------------------------------------------------------
 coroutines = "1.11.0"
-serializationJson = "1.8.0"
+serializationJson = "1.11.0"
 
 # Networking ---------------------------------------------------------------------
 retrofit = "3.0.0"             # Retrofit 3 (Kotlin-first; pulls OkHttp 4.12 transitively)
@@ -8044,15 +8383,15 @@ include(":app")
 ################################################################################
 # DUMP SUMMARY
 ################################################################################
-  Files dumped   : 82
-  Total size     : 274.0 KiB (280589 bytes)
+  Files dumped   : 84
+  Total size     : 285.9 KiB (292772 bytes)
   Output file    : /home/kushal/src/kotlin/myweather/docs/llm/dump.txt
-  Completed at   : 2026-06-21T01:37:37-04:00
+  Completed at   : 2026-06-21T04:43:47-04:00
 ################################################################################
 # END OF DUMP
 ################################################################################
 
-real	0m2.620s
-user	0m1.265s
-sys	0m1.636s
+real	0m2.682s
+user	0m1.335s
+sys	0m1.652s
 kushal@fedora:~/src/kotlin/myweather$ 
