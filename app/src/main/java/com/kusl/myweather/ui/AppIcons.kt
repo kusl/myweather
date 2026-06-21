@@ -58,4 +58,10 @@ object AppIcons {
     val Warning: ImageVector by lazy {
         icon("Warning", "M1,21h22L12,2 1,21zM13,18h-2v-2h2v2zM13,14h-2v-4h2v4z")
     }
+    val ContentCopy: ImageVector by lazy {
+        icon(
+            "ContentCopy",
+            "M16,1H4C2.9,1 2,1.9 2,3v14h2V3h12V1zM19,5H8C6.9,5 6,5.9 6,7v14c0,1.1 0.9,2 2,2h11c1.1,0 2,-0.9 2,-2V7c0,-1.1 -0.9,-2 -2,-2zM19,21H8V7h11v14z",
+        )
+    }
 }

@@ -1,4 +1,4 @@
-# ─────────────────────────────────────────────────────────────────────────────
+# ────────────────────────────────────────────────────────────────────────────
 # Central version catalog. This is the single source of truth for dependency
 # and plugin versions; modules reference these aliases via `libs.*`.
 #
@@ -6,7 +6,7 @@
 # the build is reproducible; bump them here (or via Renovate/Dependabot) and the
 # whole project updates in one place. CI (`.github/workflows`) is the source of
 # truth for whether a given set actually builds.
-# ─────────────────────────────────────────────────────────────────────────────
+# ────────────────────────────────────────────────────────────────────────────
 [versions]
 # Build toolchain ----------------------------------------------------------------
 agp = "9.2.1"                  # Android Gradle Plugin
@@ -14,17 +14,17 @@ kotlin = "2.4.0"               # Kotlin (K2). Compose-compiler & serialization p
 ksp = "2.3.9"                  # KSP2 — decoupled versioning; 2.3.9 supports Kotlin 2.2+ (incl. 2.4.0)
 
 # AndroidX / Jetpack -------------------------------------------------------------
-coreKtx = "1.15.0"
+coreKtx = "1.19.0"
 lifecycle = "2.11.0"
 activityCompose = "1.13.0"
-composeBom = "2026.05.00"      # Pins all androidx.compose.* artifact versions together
+composeBom = "2026.06.00"      # Pins all androidx.compose.* artifact versions together
 navigationCompose = "2.9.8"
-datastore = "1.1.7"
+datastore = "1.2.1"
 room = "2.8.4"                 # Room 2.x (maintenance line); Kotlin-codegen via KSP
 
 # Kotlinx ------------------------------------------------------------------------
 coroutines = "1.11.0"
-serializationJson = "1.8.0"
+serializationJson = "1.11.0"
 
 # Networking ---------------------------------------------------------------------
 retrofit = "3.0.0"             # Retrofit 3 (Kotlin-first; pulls OkHttp 4.12 transitively)

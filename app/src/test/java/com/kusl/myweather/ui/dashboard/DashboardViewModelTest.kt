@@ -2,6 +2,9 @@ package com.kusl.myweather.ui.dashboard
 
 import com.kusl.myweather.core.GeoPoint
 import com.kusl.myweather.core.GridPoint
+import com.kusl.myweather.data.SavedLocationRepository
+import com.kusl.myweather.data.local.dao.SavedLocationDao
+import com.kusl.myweather.data.local.entity.SavedLocationEntity
 import com.kusl.myweather.data.location.LocationResult
 import com.kusl.myweather.data.location.LocationSource
 import com.kusl.myweather.data.settings.SettingsRepository
@@ -41,7 +44,8 @@ class DashboardViewModelTest {
         repo: WeatherRepository,
         location: LocationSource = FakeLocationSource(),
         radius: Int = 1,
-    ) = DashboardViewModel(repo, location, FakeSettings(radius))
+        saved: SavedLocationRepository = SavedLocationRepository(FakeSavedLocationDao()),
+    ) = DashboardViewModel(repo, location, FakeSettings(radius), saved)
 
     @Test
     fun `successful load exposes area and clears message`() = runTest(dispatcher) {
@@ -117,6 +121,43 @@ class DashboardViewModelTest {
         advanceUntilIdle()
         assertEquals(1, repo.callCount)
         assertNotNull(vm.uiState.value.area)
+    }
+
+    @Test
+    fun `device location is auto-saved exactly once`() = runTest(dispatcher) {
+        val saved = SavedLocationRepository(FakeSavedLocationDao())
+        val repo = FakeWeatherRepository(AreaWeatherResult.Success(sampleArea(false)))
+        val vm = viewModel(
+            repo,
+            location = FakeLocationSource(
+                permission = true,
+                result = LocationResult.Available(GeoPoint(36.85, -76.28)),
+            ),
+            saved = saved,
+        )
+
+        // Two "use my location" taps for the same coordinate.
+        vm.requestDeviceLocation()
+        advanceUntilIdle()
+        vm.requestDeviceLocation()
+        advanceUntilIdle()
+
+        // Saved once (deduped on the 4-dp cache key), labelled with the NWS place name.
+        val rows = saved.getAllOnce()
+        assertEquals(1, rows.size)
+        assertEquals("Norfolk, VA", rows.first().label)
+    }
+
+    @Test
+    fun `manual load does not auto-save`() = runTest(dispatcher) {
+        val saved = SavedLocationRepository(FakeSavedLocationDao())
+        val repo = FakeWeatherRepository(AreaWeatherResult.Success(sampleArea(false)))
+        val vm = viewModel(repo, saved = saved)
+
+        vm.load(GeoPoint(36.85, -76.28)) // manual path: saveToList defaults to false
+        advanceUntilIdle()
+
+        assertTrue(saved.getAllOnce().isEmpty())
     }
 
     @Test
@@ -198,4 +239,30 @@ private class FakeSettings(private val radius: Int) : SettingsRepository {
     override val neighborhoodRadius: Flow<Int> = flowOf(radius)
     override suspend fun setUserAgent(value: String) = Unit
     override suspend fun setNeighborhoodRadius(value: Int) = Unit
+}
+
+/** In-memory [SavedLocationDao] with an auto-incrementing id, like Room's. */
+private class FakeSavedLocationDao : SavedLocationDao {
+    private val store = linkedMapOf<Long, SavedLocationEntity>()
+    private var nextId = 1L
+
+    override fun observeAll(): Flow<List<SavedLocationEntity>> =
+        flowOf(store.values.sortedBy { it.createdAtEpochMs })
+
+    override suspend fun getAllOnce(): List<SavedLocationEntity> =
+        store.values.sortedBy { it.createdAtEpochMs }
+
+    override suspend fun insert(entity: SavedLocationEntity): Long {
+        val id = if (entity.id == 0L) nextId++ else entity.id
+        store[id] = entity.copy(id = id)
+        return id
+    }
+
+    override suspend fun delete(entity: SavedLocationEntity) {
+        store.remove(entity.id)
+    }
+
+    override suspend fun deleteById(id: Long) {
+        store.remove(id)
+    }
 }

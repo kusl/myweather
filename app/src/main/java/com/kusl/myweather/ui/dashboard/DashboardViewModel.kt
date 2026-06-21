@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.kusl.myweather.core.GeoPoint
 import com.kusl.myweather.core.GridPoint
 import com.kusl.myweather.core.Telemetry
+import com.kusl.myweather.data.SavedLocationRepository
 import com.kusl.myweather.data.location.LocationResult
 import com.kusl.myweather.data.location.LocationSource
 import com.kusl.myweather.data.settings.SettingsRepository
@@ -25,6 +26,7 @@ class DashboardViewModel(
     private val weatherRepository: WeatherRepository,
     private val locationProvider: LocationSource,
     private val settingsRepository: SettingsRepository,
+    private val savedLocationRepository: SavedLocationRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(DashboardUiState())
@@ -61,7 +63,9 @@ class DashboardViewModel(
             when (val result = locationProvider.currentLocation()) {
                 is LocationResult.Available -> {
                     _uiState.update { it.copy(locationStatus = LocationStatus.Idle) }
-                    load(result.point)
+                    // Persist a device fix to the saved list (deduped) once the
+                    // forecast loads, so it picks up the resolved place name.
+                    load(result.point, saveToList = true)
                 }
                 LocationResult.PermissionDenied -> {
                     _uiState.update { it.copy(locationStatus = LocationStatus.PermissionDenied) }
@@ -88,7 +92,14 @@ class DashboardViewModel(
         load(point)
     }
 
-    fun load(point: GeoPoint) {
+    /**
+     * Load the forecast for [point]. When [saveToList] is true (the "use my
+     * location" path) and the load succeeds, the coordinate is also added to the
+     * saved-locations list — deduped, and labelled with the resolved place name.
+     * Manual entry and re-opening a saved location pass false, so they never
+     * auto-save.
+     */
+    fun load(point: GeoPoint, saveToList: Boolean = false) {
         viewModelScope.launch {
             anchorGrid = null
             _uiState.update {
@@ -108,6 +119,7 @@ class DashboardViewModel(
                         )
                     }
                     toast(if (result.area.fromCache) OFFLINE_TOAST else "Weather updated")
+                    if (saveToList) saveCurrentLocation(point, result.area.metadata.displayName)
                 }
                 AreaWeatherResult.NoCoverage -> {
                     _uiState.update {
@@ -181,6 +193,23 @@ class DashboardViewModel(
         }
     }
 
+    /**
+     * Add the just-resolved current location to the saved list, deduped against
+     * what's already stored (so repeated "use my location" taps don't pile up).
+     * Uses the NWS-resolved place name (e.g. "Norfolk, VA") as the label, falling
+     * back to a generic one if NWS didn't return a city/state.
+     */
+    private suspend fun saveCurrentLocation(point: GeoPoint, displayName: String?) {
+        val label = displayName?.takeIf { it.isNotBlank() } ?: DEFAULT_SAVED_LABEL
+        val newId = savedLocationRepository.addCurrentIfAbsent(point, label)
+        if (newId != null) {
+            Telemetry.i("Dashboard", "auto-saved current location '$label'")
+            toast("Saved \u201C$label\u201D to your locations")
+        } else {
+            Telemetry.d("Dashboard", "current location already saved; not duplicating")
+        }
+    }
+
     private fun toast(text: String) {
         _events.tryEmit(DashboardEvent.Message(text))
     }
@@ -188,5 +217,6 @@ class DashboardViewModel(
     private companion object {
         const val RECENTER_LABEL = "Selected grid cell"
         const val OFFLINE_TOAST = "Showing saved data \u2014 offline"
+        const val DEFAULT_SAVED_LABEL = "My location"
     }
 }

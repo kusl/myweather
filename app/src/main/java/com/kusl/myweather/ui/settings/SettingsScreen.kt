@@ -1,15 +1,21 @@
 package com.kusl.myweather.ui.settings
 
+import android.content.ClipData
+import android.content.ClipboardManager
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -24,6 +30,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
@@ -31,6 +38,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kusl.myweather.R
 import com.kusl.myweather.core.Telemetry
 import com.kusl.myweather.data.settings.SettingsRepository
+import com.kusl.myweather.ui.AppIcons
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -112,10 +120,14 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
  * user (or a developer) can see what the app just did — handy for diagnosing a
  * slow location fix or a failed request. This data is local-only: it is never
  * uploaded or persisted.
+ *
+ * "Copy" places the entire retained log (not just the rows shown below) on the
+ * clipboard so it can be pasted into a bug report; "Clear" wipes the buffer.
  */
 @Composable
 private fun DiagnosticsSection() {
     val logs by Telemetry.entries.collectAsStateWithLifecycle()
+    val context = LocalContext.current
     val timeFormatter = remember {
         DateTimeFormatter.ofPattern("HH:mm:ss").withZone(ZoneId.systemDefault())
     }
@@ -127,7 +139,29 @@ private fun DiagnosticsSection() {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text("Diagnostics", style = MaterialTheme.typography.titleMedium)
-            TextButton(onClick = { Telemetry.clear() }, enabled = logs.isNotEmpty()) { Text("Clear") }
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                TextButton(
+                    onClick = {
+                        val export = Telemetry.exportText()
+                        if (export.isNotEmpty()) {
+                            // Platform clipboard (typed accessor) — no Compose clipboard
+                            // API churn, and on API 34+ the OS shows its own "Copied"
+                            // confirmation, so we add no toast of our own.
+                            context.getSystemService(ClipboardManager::class.java)
+                                ?.setPrimaryClip(ClipData.newPlainText("MyWeather diagnostics", export))
+                        }
+                    },
+                    enabled = logs.isNotEmpty(),
+                ) {
+                    Icon(AppIcons.ContentCopy, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(4.dp))
+                    Text("Copy")
+                }
+                TextButton(onClick = { Telemetry.clear() }, enabled = logs.isNotEmpty()) { Text("Clear") }
+            }
         }
         Text(
             "A local-only activity log to help debug issues like a slow location fix. " +

@@ -65,7 +65,9 @@ class AppContainer(context: Context) {
 
     /** One factory that knows how to build every ViewModel from this container. */
     val viewModelFactory: ViewModelProvider.Factory = viewModelFactory {
-        initializer { DashboardViewModel(weatherRepository, locationProvider, settingsRepository) }
+        initializer {
+            DashboardViewModel(weatherRepository, locationProvider, settingsRepository, savedLocationRepository)
+        }
         initializer { LocationsViewModel(savedLocationRepository) }
         initializer { SettingsViewModel(settingsRepository) }
     }

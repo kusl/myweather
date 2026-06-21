@@ -4,6 +4,9 @@ import android.util.Log
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 /**
  * Tiny, dependency-free, in-process telemetry. It does two things and only two:
@@ -41,6 +44,10 @@ object Telemetry {
     private const val CAPACITY = 200
     private const val LOG_TAG = "MyWeather"
 
+    /** Timestamp format for [exportText]; local time, matching the on-screen list. */
+    private val EXPORT_TIME_FORMAT: DateTimeFormatter =
+        DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneId.systemDefault())
+
     private val lock = Any()
     private val buffer = ArrayDeque<Entry>(CAPACITY)
 
@@ -60,6 +67,28 @@ object Telemetry {
         synchronized(lock) {
             buffer.clear()
             _entries.value = emptyList()
+        }
+    }
+
+    /**
+     * Render the retained events as a single multi-line string for sharing (the
+     * Diagnostics "Copy" action). Oldest-first — the natural reading order of a
+     * log file — with one event per line:
+     *
+     *     2026-06-21 14:23:01 I [Location] requesting fix via fused
+     *
+     * Timestamps use the device's local time zone, matching what the Diagnostics
+     * list shows on screen. This copies the *entire* buffer (up to [CAPACITY]),
+     * not just the subset rendered on screen. Returns an empty string when there
+     * is nothing to export. Like the rest of [Telemetry] this stays local-only:
+     * the caller hands the result to the clipboard, never to the network.
+     */
+    fun exportText(): String {
+        val snapshot = synchronized(lock) { buffer.toList() }
+        if (snapshot.isEmpty()) return ""
+        return snapshot.joinToString("\n") { entry ->
+            "${EXPORT_TIME_FORMAT.format(Instant.ofEpochMilli(entry.epochMs))} " +
+                "${entry.level.name.first()} [${entry.tag}] ${entry.message}"
         }
     }
 
