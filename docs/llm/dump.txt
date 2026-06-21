@@ -7,7 +7,7 @@
 
 DUMP METADATA
 ═════════════════════════════════════════════════════════════════════════════════
-  Generated at   : 2026-06-21T04:43:45-04:00
+  Generated at   : 2026-06-21T15:52:48-04:00
   Generator      : export.sh
   Host           : fedora
   User           : kushal
@@ -17,12 +17,12 @@ REPOSITORY METADATA
 ═════════════════════════════════════════════════════════════════════════════════
   Repository root: /home/kushal/src/kotlin/myweather
   Branch         : main
-  Commit (full)  : afdcd8b6f95a73f86f0e8b72a7891a4e47d73b3a
-  Commit (short) : afdcd8b
-  Commit date    : 2026-06-21 04:43:34 -0400
-  Commit message : add response by claude
+  Commit (full)  : e97723cf23061caa76da45a2402ea8df1cbaedd5
+  Commit (short) : e97723c
+  Commit date    : 2026-06-21 15:52:34 -0400
+  Commit message : chore: commit Room schema export for WeatherDatabase v1
   Remote origin  : git@github.com:kusl/myweather.git
-  Files included : 84
+  Files included : 85
   Excluded path  : docs/llm/
 
 GIT WORKING TREE STATUS (first 20 lines)
@@ -395,7 +395,7 @@ FOOTER
 mv -f "$TMP_FILE" "$OUTPUT_FILE"
 
 ################################################################################
-# FILE TREE  (all 84 included files)
+# FILE TREE  (all 85 included files)
 ################################################################################
 .
 .
@@ -403,6 +403,9 @@ mv -f "$TMP_FILE" "$OUTPUT_FILE"
 │   ├── build.gradle.kts
 │   ├── proguard-rules.pro
 │   ├── README.md
+│   ├── schemas
+│   │   └── com.kusl.myweather.data.local.WeatherDatabase
+│   │       └── 1.json
 │   └── src
 │       ├── androidTest
 │       │   └── java
@@ -878,6 +881,215 @@ by package structure and interface seams rather than by module boundaries.
   pre-Compose window background and system-bar colors. All real theming is the
   Compose `MaterialTheme`.
   
+
+################################################################################
+# FILE: app/schemas/com.kusl.myweather.data.local.WeatherDatabase/1.json
+################################################################################
+
+--- METADATA ---
+  File name:             1.json
+  Relative path:         app/schemas/com.kusl.myweather.data.local.WeatherDatabase/1.json
+  Absolute path:         /home/kushal/src/kotlin/myweather/app/schemas/com.kusl.myweather.data.local.WeatherDatabase/1.json
+  Size:                  5.6 KiB (5738 bytes)
+  Last modified:         2026-06-21 14:59:13.757656358 -0400
+  Permissions:           -rw-r--r--
+  Owner:                 kushal:kushal
+  Inode:                 16556817
+  Hard links:            1
+  MIME type:             application/json
+  SHA-256:               46984875a029cb525d1f9b3bd96659bd9f82ff7d63a4e58808a3eb1761311001
+  Last git commit:       e97723c 2026-06-21 15:52:34 -0400 chore: commit Room schema export for WeatherDatabase v1
+
+--- CONTENT ---
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 1,
+    "identityHash": "939fad4a7f99113cc4a542a45aed1b9a",
+    "entities": [
+      {
+        "tableName": "point_metadata",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`cacheKey` TEXT NOT NULL, `queryLatitude` REAL NOT NULL, `queryLongitude` REAL NOT NULL, `gridId` TEXT NOT NULL, `gridX` INTEGER NOT NULL, `gridY` INTEGER NOT NULL, `city` TEXT, `state` TEXT, `timeZone` TEXT, `retrievedAtEpochMs` INTEGER NOT NULL, `expiresAtEpochMs` INTEGER NOT NULL, PRIMARY KEY(`cacheKey`))",
+        "fields": [
+          {
+            "fieldPath": "cacheKey",
+            "columnName": "cacheKey",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "queryLatitude",
+            "columnName": "queryLatitude",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "queryLongitude",
+            "columnName": "queryLongitude",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "gridId",
+            "columnName": "gridId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "gridX",
+            "columnName": "gridX",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "gridY",
+            "columnName": "gridY",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "city",
+            "columnName": "city",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "state",
+            "columnName": "state",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "timeZone",
+            "columnName": "timeZone",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "retrievedAtEpochMs",
+            "columnName": "retrievedAtEpochMs",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "expiresAtEpochMs",
+            "columnName": "expiresAtEpochMs",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "cacheKey"
+          ]
+        }
+      },
+      {
+        "tableName": "forecast_cache",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`gridKey` TEXT NOT NULL, `gridId` TEXT NOT NULL, `gridX` INTEGER NOT NULL, `gridY` INTEGER NOT NULL, `payloadJson` TEXT NOT NULL, `etag` TEXT, `retrievedAtEpochMs` INTEGER NOT NULL, `expiresAtEpochMs` INTEGER NOT NULL, PRIMARY KEY(`gridKey`))",
+        "fields": [
+          {
+            "fieldPath": "gridKey",
+            "columnName": "gridKey",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "gridId",
+            "columnName": "gridId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "gridX",
+            "columnName": "gridX",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "gridY",
+            "columnName": "gridY",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "payloadJson",
+            "columnName": "payloadJson",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "etag",
+            "columnName": "etag",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "retrievedAtEpochMs",
+            "columnName": "retrievedAtEpochMs",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "expiresAtEpochMs",
+            "columnName": "expiresAtEpochMs",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "gridKey"
+          ]
+        }
+      },
+      {
+        "tableName": "saved_location",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `label` TEXT NOT NULL, `latitude` REAL NOT NULL, `longitude` REAL NOT NULL, `createdAtEpochMs` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "label",
+            "columnName": "label",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "latitude",
+            "columnName": "latitude",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "longitude",
+            "columnName": "longitude",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAtEpochMs",
+            "columnName": "createdAtEpochMs",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        }
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '939fad4a7f99113cc4a542a45aed1b9a')"
+    ]
+  }
+}
 
 ################################################################################
 # FILE: app/src/androidTest/java/com/kusl/myweather/data/local/WeatherDaoTest.kt
@@ -8382,10 +8594,10 @@ include(":app")
 ################################################################################
 # DUMP SUMMARY
 ################################################################################
-  Files dumped   : 84
-  Total size     : 285.9 KiB (292772 bytes)
+  Files dumped   : 85
+  Total size     : 291.5 KiB (298510 bytes)
   Output file    : /home/kushal/src/kotlin/myweather/docs/llm/dump.txt
-  Completed at   : 2026-06-21T04:43:47-04:00
+  Completed at   : 2026-06-21T15:52:51-04:00
 ################################################################################
 # END OF DUMP
 ################################################################################
