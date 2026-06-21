@@ -1,4 +1,4 @@
-kushal@fedora:~/Music/podcast-audio$ cd ~/src/kotlin/myweather/; time bash export.sh
+kushal@fedora:~/src/kotlin/myweather$ cd ~/src/kotlin/myweather/; time bash export.sh
 ################################################################################
 #                                                                              #
 #   REPOSITORY CONTEXT DUMP                                                    #
@@ -8,7 +8,7 @@ kushal@fedora:~/Music/podcast-audio$ cd ~/src/kotlin/myweather/; time bash expor
 
 DUMP METADATA
 ═════════════════════════════════════════════════════════════════════════════════
-  Generated at   : 2026-06-21T00:13:37-04:00
+  Generated at   : 2026-06-21T01:37:35-04:00
   Generator      : export.sh
   Host           : fedora
   User           : kushal
@@ -18,10 +18,10 @@ REPOSITORY METADATA
 ═════════════════════════════════════════════════════════════════════════════════
   Repository root: /home/kushal/src/kotlin/myweather
   Branch         : main
-  Commit (full)  : d9a1b28cb7a7546e601fead1887c9ebdf94ca79e
-  Commit (short) : d9a1b28
-  Commit date    : 2026-06-21 00:12:13 -0400
-  Commit message : add claude changes
+  Commit (full)  : e440a2e729a7f36b9c8f40aece195e5407863552
+  Commit (short) : e440a2e
+  Commit date    : 2026-06-21 01:37:28 -0400
+  Commit message : use per build versions with claude
   Remote origin  : git@github.com:kusl/myweather.git
   Files included : 82
   Excluded path  : docs/llm/
@@ -546,15 +546,15 @@ mv -f "$TMP_FILE" "$OUTPUT_FILE"
   File name:             build.gradle.kts
   Relative path:         app/build.gradle.kts
   Absolute path:         /home/kushal/src/kotlin/myweather/app/build.gradle.kts
-  Size:                  6.9 KiB (7155 bytes)
-  Last modified:         2026-06-20 13:31:12.214180993 -0400
+  Size:                  7.7 KiB (7945 bytes)
+  Last modified:         2026-06-21 01:35:59.225685107 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 16257498
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               79b15a5fae9ba4409336dbf6c3417059d593a7c5886a62f00c217b6f30010979
-  Last git commit:       5d158c5 2026-06-20 13:32:03 -0400 add claude response
+  SHA-256:               e2d31872a22e52625db839e33034c8a4911c5b4a182c447657da9d723bfb1368
+  Last git commit:       e440a2e 2026-06-21 01:37:28 -0400 use per build versions with claude
 
 --- CONTENT ---
 import com.android.build.api.dsl.ApkSigningConfig
@@ -604,6 +604,19 @@ fun resolveReleaseSigning(): Map<String, String>? {
     return null
 }
 
+/**
+ * Per-build version, normally injected by CI (the GitHub Actions run number —
+ * see .github/workflows/build_apk.yml). A strictly-increasing versionCode is what
+ * makes Android — and update managers like Obtainium — treat each published APK
+ * as a genuine upgrade over the one already installed. Local builds have no such
+ * env var and fall back to a stable default, so `assembleRelease` still works
+ * offline. (Reading a named env var is tracked by Gradle's configuration cache,
+ * so a new run_number correctly invalidates and re-evaluates the version.)
+ */
+val ciVersionCode: Int = System.getenv("MYWEATHER_VERSION_CODE")?.toIntOrNull() ?: 1
+val ciVersionName: String =
+    System.getenv("MYWEATHER_VERSION_NAME")?.takeIf { it.isNotBlank() } ?: "1.0.0"
+
 android {
     // Code package for the generated R and BuildConfig classes. This is internal
     // and never user-visible, so it stays as-is: every `import com.kusl.myweather.*`
@@ -625,8 +638,8 @@ android {
         applicationId = "com.github.kusl.myweather"
         minSdk = 34
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = ciVersionCode
+        versionName = ciVersionName
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables { useSupportLibrary = true }
@@ -6770,19 +6783,28 @@ updates:
   File name:             build_apk.yml
   Relative path:         .github/workflows/build_apk.yml
   Absolute path:         /home/kushal/src/kotlin/myweather/.github/workflows/build_apk.yml
-  Size:                  2.9 KiB (3071 bytes)
-  Last modified:         2026-06-20 13:21:00.607406664 -0400
+  Size:                  5.5 KiB (5661 bytes)
+  Last modified:         2026-06-21 01:35:24.041809347 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 16460674
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               f2945541a114e500b2169dd6abc0335b898dd3eb5eabc3934dfc55b8b30d462c
-  Last git commit:       2e37e2d 2026-06-20 13:21:36 -0400 add claude response
+  SHA-256:               a929b222edd04d46b2e475b7f3adf4763a0dcdfc60debbd5b507f385b9f267ad
+  Last git commit:       e440a2e 2026-06-21 01:37:28 -0400 use per build versions with claude
 
 --- CONTENT ---
-# Builds a signed release APK on every push to main and publishes it to a
-# rolling "pre-release" GitHub Release.
+# Builds a signed release APK on every push to main and publishes it as an
+# immutable, monotonically-versioned GitHub Release (one release per build).
+#
+# This replaces the old single "rolling" pre-release. Each build now produces:
+#   • a unique, increasing git tag         v1.0.<run_number>
+#   • an APK whose versionCode == <run_number> and versionName == 1.0.<run_number>
+#   • a uniquely-named asset                MyWeather-v1.0.<run_number>.apk
+# A strictly-increasing versionCode is what lets Android — and update managers
+# like Obtainium — recognise each release as a genuine upgrade. The release is a
+# normal (non-pre-) release and is marked "latest", so Obtainium picks it up with
+# its default settings (no "include pre-releases" workaround needed).
 #
 # Signing: if the repository defines the signing secrets below, the APK is
 # signed with the real release key. If not (e.g. on a fork), app/build.gradle.kts
@@ -6802,7 +6824,7 @@ on:
   workflow_dispatch:
 
 # Least privilege by default; the build job opts up to contents:write so it can
-# publish the rolling release.
+# publish the release.
 permissions:
   contents: read
 
@@ -6817,6 +6839,16 @@ jobs:
     timeout-minutes: 30
     permissions:
       contents: write
+
+    # Single source of truth for this build's version, derived from the monotonic
+    # GitHub Actions run number. Reused for the Gradle versionCode/versionName
+    # (read via System.getenv in app/build.gradle.kts), the git tag, the APK
+    # filename, and the release title — so they all agree. Job-level env is
+    # inherited by every step below.
+    env:
+      MYWEATHER_VERSION_CODE: ${{ github.run_number }}
+      MYWEATHER_VERSION_NAME: 1.0.${{ github.run_number }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -6839,35 +6871,71 @@ jobs:
           echo "MYWEATHER_KEYSTORE_PATH=${{ github.workspace }}/release.keystore" >> "$GITHUB_ENV"
 
       - name: Assemble release
+        # MYWEATHER_VERSION_CODE / MYWEATHER_VERSION_NAME are inherited from the
+        # job-level env above and read by app/build.gradle.kts. The signing
+        # secrets below are empty on forks/unsecured runs; the Gradle script then
+        # falls back to debug signing so the build still produces an APK.
         env:
-          # These are empty on forks/unsecured runs; the Gradle script then
-          # falls back to debug signing so the build still produces an APK.
           MYWEATHER_KEYSTORE_PASSWORD: ${{ secrets.MYWEATHER_KEYSTORE_PASSWORD }}
           MYWEATHER_KEY_ALIAS: ${{ secrets.MYWEATHER_KEY_ALIAS }}
           MYWEATHER_KEY_PASSWORD: ${{ secrets.MYWEATHER_KEY_PASSWORD }}
         run: ./gradlew :app:assembleRelease --stacktrace
 
+      - name: Stage versioned APK
+        # Copy whatever single APK Gradle produced to a unique, version-stamped
+        # filename so each release ships a distinct, incrementing asset.
+        run: |
+          set -euo pipefail
+          mkdir -p build/dist
+          apk="$(find app/build/outputs/apk/release -maxdepth 1 -name '*.apk' | head -n1)"
+          if [ -z "$apk" ]; then
+            echo "::error::No release APK found under app/build/outputs/apk/release"
+            exit 1
+          fi
+          dest="build/dist/MyWeather-v${MYWEATHER_VERSION_NAME}.apk"
+          cp "$apk" "$dest"
+          echo "Staged: $dest"
+          ls -l build/dist
+
       - name: Upload APK artifact
         uses: actions/upload-artifact@v7
         with:
           name: myweather-release-apk
-          path: app/build/outputs/apk/release/*.apk
+          path: build/dist/*.apk
           if-no-files-found: error
 
-      - name: Publish rolling pre-release
+      - name: Publish GitHub Release
         # Only from the canonical repo on a real push to main — never from forks
         # or pull requests (which also lack the signing secrets).
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'kusl/myweather' }}
         uses: softprops/action-gh-release@v3
         with:
-          tag_name: rolling
-          name: Rolling build
-          prerelease: true
-          make_latest: false
+          tag_name: v${{ env.MYWEATHER_VERSION_NAME }}
+          name: MyWeather v${{ env.MYWEATHER_VERSION_NAME }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          make_latest: true
           body: |
-            Automated pre-release built from the latest commit on `main`.
+            Automated release built from the latest commit on `main`.
+
+            ## MyWeather v${{ env.MYWEATHER_VERSION_NAME }}
+
+            **versionCode** `${{ env.MYWEATHER_VERSION_CODE }}` · **versionName** `${{ env.MYWEATHER_VERSION_NAME }}`
+
+            ### Download
+
+            | Platform | File |
+            |----------|------|
+            | Android | `MyWeather-v${{ env.MYWEATHER_VERSION_NAME }}.apk` |
+
+            ### Android users (Obtainium)
+
+            Point Obtainium at this repository's releases for automatic updates.
+            Every release ships a strictly higher `versionCode`, so updates install cleanly.
+
             Commit: ${{ github.sha }}
-          files: app/build/outputs/apk/release/*.apk
+          files: build/dist/*.apk
 
 
 ################################################################################
@@ -7977,14 +8045,14 @@ include(":app")
 # DUMP SUMMARY
 ################################################################################
   Files dumped   : 82
-  Total size     : 270.7 KiB (277209 bytes)
+  Total size     : 274.0 KiB (280589 bytes)
   Output file    : /home/kushal/src/kotlin/myweather/docs/llm/dump.txt
-  Completed at   : 2026-06-21T00:13:39-04:00
+  Completed at   : 2026-06-21T01:37:37-04:00
 ################################################################################
 # END OF DUMP
 ################################################################################
 
-real	0m2.645s
-user	0m1.298s
-sys	0m1.650s
+real	0m2.620s
+user	0m1.265s
+sys	0m1.636s
 kushal@fedora:~/src/kotlin/myweather$ 
