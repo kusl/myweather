@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.kusl.myweather.data.local.entity.ForecastCacheEntity
+import com.kusl.myweather.data.local.entity.HttpCacheEntity
 import com.kusl.myweather.data.local.entity.PointMetadataEntity
 import com.kusl.myweather.data.local.entity.SavedLocationEntity
 import kotlinx.coroutines.flow.Flow
@@ -29,6 +30,30 @@ interface ForecastCacheDao {
 
     @Query("DELETE FROM forecast_cache WHERE expiresAtEpochMs < :cutoffEpochMs")
     suspend fun deleteExpiredBefore(cutoffEpochMs: Long)
+}
+
+/**
+ * DAO for the universal transport cache.
+ *
+ * These methods are intentionally **blocking** (not `suspend`): they are called
+ * from inside [com.kusl.myweather.data.remote.HttpCacheInterceptor], which runs
+ * on OkHttp's background dispatcher, never the main thread. Keeping them
+ * synchronous lets the interceptor read/write the cache inline without launching
+ * a coroutine mid-chain.
+ */
+@Dao
+interface HttpCacheDao {
+    @Query("SELECT * FROM http_cache WHERE cacheKey = :key LIMIT 1")
+    fun getByKey(key: String): HttpCacheEntity?
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun upsert(entity: HttpCacheEntity)
+
+    @Query("DELETE FROM http_cache WHERE expiresAtEpochMs < :cutoffEpochMs")
+    fun deleteExpiredBefore(cutoffEpochMs: Long)
+
+    @Query("DELETE FROM http_cache")
+    fun clear()
 }
 
 @Dao

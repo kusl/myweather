@@ -50,3 +50,28 @@ data class SavedLocationEntity(
     val longitude: Double,
     val createdAtEpochMs: Long,
 )
+
+/**
+ * The universal transport-level HTTP cache, written by [com.kusl.myweather.data.remote.HttpCacheInterceptor].
+ *
+ * One row per resolved request, keyed by `"$method $url"` so that any two calls
+ * which resolve to the same endpoint collapse onto a single row (request
+ * de-duplication). The raw response body is stored verbatim as text — NWS speaks
+ * JSON/GeoJSON, which is UTF-8 — together with the status, `ETag`, content type,
+ * and the computed expiry that governs freshness. Error statuses (notably the
+ * cacheable `404`s NWS returns) are stored here too.
+ */
+@Entity(tableName = "http_cache")
+data class HttpCacheEntity(
+    /** `"$method $url"` — the de-duplication key. */
+    @PrimaryKey val cacheKey: String,
+    val url: String,
+    val method: String,
+    val statusCode: Int,
+    val statusMessage: String,
+    val contentType: String?,
+    val body: String,
+    val etag: String?,
+    val retrievedAtEpochMs: Long,
+    val expiresAtEpochMs: Long,
+)

@@ -44,7 +44,10 @@ class AppContainer(context: Context) {
     val locationProvider = LocationProvider(appContext)
 
     private val userAgentProvider = UserAgentProvider()
-    private val okHttpClient = NetworkModule.okHttpClient(userAgentProvider)
+
+    // The DB is built first, so the universal HTTP cache (Room-backed) is wired
+    // straight into the OkHttp client.
+    private val okHttpClient = NetworkModule.okHttpClient(userAgentProvider, database.httpCacheDao())
     private val nwsApi: NwsApi = NetworkModule.nwsApi(okHttpClient)
 
     val weatherRepository: WeatherRepository = WeatherRepositoryImpl(

@@ -31,34 +31,48 @@ No Android dependencies, so it's trivially unit-testable.
 Plain data classes (`Forecast`, `ForecastPeriod`, `PointMetadata`, `WeatherTile`,
 `AreaWeather`, `SavedLocation`) and the `WeatherRepository` interface, whose
 result type `AreaWeatherResult` is `Success | NoCoverage | Unavailable` so the UI
-can react cleanly to every outcome.
+can react cleanly to every outcome. `AreaWeather` also carries the primary
+location's supplementary data: `WeatherAlert`s (active watches/warnings, with the
+human-authored text kept verbatim), an hourly forecast, the latest
+`CurrentObservation` (measured conditions, normalised to US-customary units), and
+`LocationSources` (the official NWS endpoints/zones behind the data).
 
 ### `data` — the real work
 - **`data.remote`** — `NwsApi` returns Retrofit `Response<T>` (not bare bodies)
-  so the repository can read `ETag`/`Cache-Control` and handle `304`. The
-  `UserAgentProvider` holds the current User-Agent in an `AtomicReference`; an
-  OkHttp interceptor reads it per request and also sets
-  `Accept: application/geo+json`.
+  so the repository can read `ETag`/`Cache-Control` and handle `304`. It covers
+  the points and forecast endpoints plus the supplementary ones (`/alerts/active`,
+  `/forecast/hourly`, `/stations`, `/observations/latest`). Two interceptors run
+  on every call: `HttpCacheInterceptor` (outermost — a Room-backed transport
+  cache that de-duplicates by resolved URL, negatively caches `404`s, backs off
+  on `429`/`5xx`, and serves stale-on-error; see [CACHING.md](CACHING.md)), then
+  `NwsHeaderInterceptor`, which reads the current User-Agent from an
+  `AtomicReference` (`UserAgentProvider`) and sets `Accept: application/geo+json`.
 - **`data.local`** — Room stores forecasts as a serialised JSON blob plus the
-  columns that drive freshness (`expiresAtEpochMs`, `etag`).
+  columns that drive freshness (`expiresAtEpochMs`, `etag`), and backs the
+  transport cache via the `http_cache` table (database version 2).
 - **`WeatherRepositoryImpl`** — the cache-aside orchestrator (see
   [CACHING.md](CACHING.md)). It resolves metadata, fetches the primary forecast,
-  and warms the surrounding ring with **bounded concurrency** (a `Semaphore`
-  capped at 4) so a cold area can't stampede NWS.
+  warms the surrounding ring with **bounded concurrency** (a `Semaphore` capped
+  at 4) so a cold area can't stampede NWS, and gathers the primary location's
+  best-effort supplementary data concurrently (each call isolated so it never
+  blocks the core forecast).
 
 ### `di` — manual injection
 `AppContainer` builds the object graph once, owns an application
 `CoroutineScope`, keeps the live User-Agent in sync with the saved setting, and
 exposes a single `ViewModelProvider.Factory` that knows how to build all three
-ViewModels. No DI framework is used — the graph is small, explicit, and keeps the
-dependency footprint minimal.
+ViewModels. The Room database is built first so its `http_cache` DAO can be handed
+to the OkHttp client. No DI framework is used — the graph is small, explicit, and
+keeps the dependency footprint minimal.
 
 ### `ui` — Compose
 A `Scaffold` with a bottom navigation bar hosts a `NavHost` with three
 destinations. Each screen owns its `TopAppBar`. Icons are hand-built
 `ImageVector`s (from SVG path data) to avoid depending on the deprecated
 `material-icons` artifacts. State is exposed as `StateFlow` and collected with
-`collectAsStateWithLifecycle`.
+`collectAsStateWithLifecycle`. On the dashboard, active alerts render in a
+collapsible banner pinned above everything else, and tapping the headline card or
+any forecast period opens a detail sheet.
 
 ## Why these choices
 
@@ -70,3 +84,4 @@ destinations. Each screen owns its `TopAppBar`. Icons are hand-built
 - **Single module** — the codebase is small; package structure is enough.
 - **KSP only for Room** — Room's codegen is its most battle-tested path; nothing
   else needs an annotation processor.
+  

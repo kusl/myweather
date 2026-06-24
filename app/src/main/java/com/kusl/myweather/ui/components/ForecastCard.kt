@@ -1,5 +1,6 @@
 package com.kusl.myweather.ui.components
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -22,16 +23,20 @@ import com.kusl.myweather.domain.model.Forecast
 import com.kusl.myweather.domain.model.ForecastPeriod
 import com.kusl.myweather.domain.model.PointMetadata
 
-/** Headline "current conditions" card for the user's own cell. */
+/** Headline "current conditions" card for the user's own cell. Tapping it opens
+ * the full detail for the current period. */
 @Composable
 fun ForecastCard(
     metadata: PointMetadata,
     forecast: Forecast,
+    onPeriodSelected: (ForecastPeriod) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val current = forecast.current
     Card(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable(enabled = current != null) { current?.let(onPeriodSelected) },
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
     ) {
         Column(Modifier.padding(20.dp)) {
@@ -88,10 +93,11 @@ fun ForecastCard(
     }
 }
 
-/** A horizontally-scrolling strip of the upcoming forecast periods. */
+/** A horizontally-scrolling strip of the upcoming forecast periods; tap one for detail. */
 @Composable
 fun UpcomingPeriods(
     periods: List<ForecastPeriod>,
+    onPeriodSelected: (ForecastPeriod) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     if (periods.isEmpty()) return
@@ -103,7 +109,11 @@ fun UpcomingPeriods(
         )
         LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             items(periods, key = { it.number }) { period ->
-                OutlinedCard(modifier = Modifier.width(140.dp)) {
+                OutlinedCard(
+                    modifier = Modifier
+                        .width(140.dp)
+                        .clickable { onPeriodSelected(period) },
+                ) {
                     Column(Modifier.padding(12.dp)) {
                         Text(period.name, style = MaterialTheme.typography.labelLarge, maxLines = 1)
                         Text(
@@ -111,11 +121,7 @@ fun UpcomingPeriods(
                             style = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.SemiBold,
                         )
-                        Text(
-                            period.shortForecast,
-                            style = MaterialTheme.typography.bodySmall,
-                            maxLines = 3,
-                        )
+                        Text(period.shortForecast, style = MaterialTheme.typography.bodySmall, maxLines = 3)
                         period.probabilityOfPrecipitation?.let {
                             Text("Precip $it%", style = MaterialTheme.typography.labelSmall)
                         }

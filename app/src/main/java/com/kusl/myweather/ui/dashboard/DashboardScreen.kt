@@ -37,8 +37,14 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kusl.myweather.R
+import com.kusl.myweather.domain.model.ForecastPeriod
 import com.kusl.myweather.ui.AppIcons
+import com.kusl.myweather.ui.components.AlertsBanner
 import com.kusl.myweather.ui.components.ForecastCard
+import com.kusl.myweather.ui.components.HourlyStrip
+import com.kusl.myweather.ui.components.LocationSourcesCard
+import com.kusl.myweather.ui.components.ObservationCard
+import com.kusl.myweather.ui.components.PeriodDetailSheet
 import com.kusl.myweather.ui.components.TileGrid
 import com.kusl.myweather.ui.components.UpcomingPeriods
 import kotlinx.coroutines.flow.collect
@@ -52,6 +58,9 @@ fun DashboardScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var manualText by rememberSaveable { mutableStateOf("") }
+    // Which period (if any) is showing its detail sheet. Transient by design:
+    // it's an ephemeral overlay, so we don't preserve it across config changes.
+    var selectedPeriod by remember { mutableStateOf<ForecastPeriod?>(null) }
     val context = LocalContext.current
 
     // When navigated here with explicit coords (e.g. from a saved location), load them.
@@ -91,6 +100,11 @@ fun DashboardScreen(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
+            // Life-and-safety first: any active watches/warnings sit above everything.
+            state.area?.alerts?.takeIf { it.isNotEmpty() }?.let { alerts ->
+                item(key = "alerts") { AlertsBanner(alerts) }
+            }
+
             item {
                 Button(
                     onClick = {
@@ -160,14 +174,39 @@ fun DashboardScreen(
 
             val area = state.area
             if (area != null) {
-                item { ForecastCard(metadata = area.metadata, forecast = area.primary) }
+                item {
+                    ForecastCard(
+                        metadata = area.metadata,
+                        forecast = area.primary,
+                        onPeriodSelected = { selectedPeriod = it },
+                    )
+                }
+                area.observation?.let { obs ->
+                    item { ObservationCard(observation = obs) }
+                }
                 item {
                     TileGrid(
                         tiles = area.tiles,
                         onTileSelected = { viewModel.recenterOnGrid(it.grid) },
                     )
                 }
-                item { UpcomingPeriods(periods = area.primary.periods) }
+                item {
+                    UpcomingPeriods(
+                        periods = area.primary.periods,
+                        onPeriodSelected = { selectedPeriod = it },
+                    )
+                }
+                if (area.hourly.isNotEmpty()) {
+                    item {
+                        HourlyStrip(
+                            periods = area.hourly,
+                            onPeriodSelected = { selectedPeriod = it },
+                        )
+                    }
+                }
+                area.sources?.let { sources ->
+                    item { LocationSourcesCard(sources = sources) }
+                }
             } else if (!state.isLoading &&
                 state.message == null &&
                 state.locationStatus != LocationStatus.Requesting
@@ -182,6 +221,12 @@ fun DashboardScreen(
             }
 
             item { Column(Modifier.padding(bottom = 8.dp)) {} }
+        }
+
+        // Detail overlay for a tapped forecast period. Rendered outside the list
+        // so it floats above the whole screen.
+        selectedPeriod?.let { period ->
+            PeriodDetailSheet(period = period, onDismiss = { selectedPeriod = null })
         }
     }
 }

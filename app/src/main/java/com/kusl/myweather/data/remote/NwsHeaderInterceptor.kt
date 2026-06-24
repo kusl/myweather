@@ -9,9 +9,10 @@ import okhttp3.Response
  *    value in Settings takes effect immediately.
  *  - `Accept: application/geo+json`: the GeoJSON representation we parse.
  *
- * We do NOT install an OkHttp disk cache; forecast freshness is managed
- * explicitly in Room (TTL + conditional GET), so a second HTTP cache would only
- * add confusion.
+ * Caching is handled one layer out by [HttpCacheInterceptor] (a single,
+ * Room-backed transport cache) — not by an OkHttp disk cache — so freshness,
+ * de-duplication, and negative caching all live in one explicit place. This
+ * interceptor therefore concerns itself only with headers.
  */
 class NwsHeaderInterceptor(
     private val userAgentProvider: UserAgentProvider,

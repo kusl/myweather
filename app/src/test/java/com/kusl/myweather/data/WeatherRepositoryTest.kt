@@ -9,14 +9,19 @@ import com.kusl.myweather.data.local.entity.ForecastCacheEntity
 import com.kusl.myweather.data.local.entity.PointMetadataEntity
 import com.kusl.myweather.data.remote.NwsApi
 import com.kusl.myweather.data.remote.WeatherJson
+import com.kusl.myweather.data.remote.dto.AlertFeatureDto
+import com.kusl.myweather.data.remote.dto.AlertPropertiesDto
+import com.kusl.myweather.data.remote.dto.AlertsResponseDto
 import com.kusl.myweather.data.remote.dto.ForecastPropertiesDto
 import com.kusl.myweather.data.remote.dto.ForecastResponseDto
+import com.kusl.myweather.data.remote.dto.ObservationResponseDto
 import com.kusl.myweather.data.remote.dto.PeriodDto
 import com.kusl.myweather.data.remote.dto.PointPropertiesDto
 import com.kusl.myweather.data.remote.dto.PointResponseDto
 import com.kusl.myweather.data.remote.dto.QuantitativeValueDto
 import com.kusl.myweather.data.remote.dto.RelativeLocationDto
 import com.kusl.myweather.data.remote.dto.RelativeLocationPropertiesDto
+import com.kusl.myweather.data.remote.dto.StationsResponseDto
 import com.kusl.myweather.domain.AreaWeatherResult
 import com.kusl.myweather.domain.model.Forecast
 import com.kusl.myweather.domain.model.ForecastPeriod
@@ -86,6 +91,9 @@ class WeatherRepositoryTest {
 
         assertTrue(result is AreaWeatherResult.Success)
         assertFalse((result as AreaWeatherResult.Success).area.fromCache)
+        // The forecast/grid path is fully served from cache. (Supplementary
+        // endpoints — alerts/hourly/observation — are best-effort extras that
+        // never gate this result, so they aren't asserted here.)
         assertEquals(0, api.pointCallCount)
         assertTrue(api.forecastCalls.isEmpty())
     }
@@ -180,6 +188,61 @@ class WeatherRepositoryTest {
         assertFalse(area.fromCache)
     }
 
+    @Test
+    fun `active alerts are fetched and propagated for the primary location`() = runTest {
+        api.alertsResponder = {
+            Response.success(
+                AlertsResponseDto(
+                    features = listOf(
+                        AlertFeatureDto(
+                            id = "urn:oid:tornado-1",
+                            properties = AlertPropertiesDto(
+                                id = "urn:oid:tornado-1",
+                                event = "Tornado Warning",
+                                severity = "Extreme",
+                                urgency = "Immediate",
+                                certainty = "Observed",
+                                headline = "Tornado Warning issued for Norfolk",
+                                description = "A tornado was spotted near Norfolk.",
+                                instruction = "Take shelter now.",
+                                areaDesc = "Norfolk, VA",
+                                expires = "2026-06-19T13:00:00-04:00",
+                                senderName = "NWS Wakefield VA",
+                            ),
+                        ),
+                    ),
+                ),
+            )
+        }
+
+        val result = repo.getAreaWeather(query, radius = 1)
+
+        assertTrue(result is AreaWeatherResult.Success)
+        val area = (result as AreaWeatherResult.Success).area
+        assertEquals(1, area.alerts.size)
+        val alert = area.alerts.first()
+        assertEquals("Tornado Warning", alert.event)
+        assertEquals("A tornado was spotted near Norfolk.", alert.description) // carried verbatim
+        assertEquals("Take shelter now.", alert.instruction)
+        assertEquals(1, api.alertsCallCount)
+    }
+
+    @Test
+    fun `grid recenter does not fetch supplementary alerts`() = runTest {
+        val center = GridPoint("AKQ", 84, 61)
+
+        repo.getAreaWeatherForGrid(
+            center = center,
+            radius = 1,
+            label = "Selected grid cell",
+            timeZone = "America/New_York",
+        )
+
+        // Recenter is an ephemeral peek at a neighbouring cell, not the user's
+        // own location, so it deliberately skips the supplementary fetches.
+        assertEquals(0, api.alertsCallCount)
+    }
+
     // ── helpers ───────────────────────────────────────────────────────────────
 
     private fun primeFreshMetadata(expiresInMs: Long = 30L * 24 * 60 * 60 * 1000) {
@@ -251,6 +314,10 @@ private class FakeNwsApi : NwsApi {
     var pointCallCount = 0
     val forecastCalls = mutableListOf<Triple<String, String, String?>>()
 
+    // Supplementary endpoints are tracked separately so the core points/forecast
+    // assertions above stay unaffected by the "as much info as we can get" extras.
+    var alertsCallCount = 0
+
     var pointResponder: () -> Response<PointResponseDto> = { Response.success(pointDto()) }
     // Default success carries a Cache-Control + a fresh ETag ("v2").
     var forecastResponder: (String, String, String?) -> Response<ForecastResponseDto> = { _, _, _ ->
@@ -258,6 +325,11 @@ private class FakeNwsApi : NwsApi {
             forecastDto(75),
             Headers.headersOf("Cache-Control", "max-age=1800", "ETag", "v2"),
         )
+    }
+
+    // No active alerts by default; tests override to inject one.
+    var alertsResponder: (String) -> Response<AlertsResponseDto> = {
+        Response.success(AlertsResponseDto(features = emptyList()))
     }
 
     override suspend fun getPoint(point: String): Response<PointResponseDto> {
@@ -275,6 +347,29 @@ private class FakeNwsApi : NwsApi {
         if (throwOnForecast) throw IOException("offline")
         return forecastResponder(office, coords, ifNoneMatch)
     }
+
+    override suspend fun getActiveAlerts(point: String): Response<AlertsResponseDto> {
+        alertsCallCount++
+        return alertsResponder(point)
+    }
+
+    // The remaining supplementary endpoints are inert by default (empty payloads),
+    // so the repository's best-effort extras resolve to "nothing to show" without
+    // touching the counters the core tests assert on.
+    override suspend fun getForecastHourly(
+        office: String,
+        coords: String,
+        ifNoneMatch: String?,
+    ): Response<ForecastResponseDto> = Response.success(ForecastResponseDto(properties = null))
+
+    override suspend fun getObservationStations(
+        office: String,
+        coords: String,
+    ): Response<StationsResponseDto> = Response.success(StationsResponseDto(features = emptyList()))
+
+    override suspend fun getLatestObservation(
+        stationId: String,
+    ): Response<ObservationResponseDto> = Response.success(ObservationResponseDto(properties = null))
 }
 
 private class FakePointMetadataDao : PointMetadataDao {

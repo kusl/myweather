@@ -13,11 +13,16 @@ import com.kusl.myweather.data.local.entity.PointMetadataEntity
 import com.kusl.myweather.data.mapper.NwsMappers
 import com.kusl.myweather.data.remote.NwsApi
 import com.kusl.myweather.data.remote.WeatherJson
+import com.kusl.myweather.data.remote.dto.PointPropertiesDto
 import com.kusl.myweather.domain.AreaWeatherResult
 import com.kusl.myweather.domain.WeatherRepository
 import com.kusl.myweather.domain.model.AreaWeather
+import com.kusl.myweather.domain.model.CurrentObservation
 import com.kusl.myweather.domain.model.Forecast
+import com.kusl.myweather.domain.model.ForecastPeriod
+import com.kusl.myweather.domain.model.LocationSources
 import com.kusl.myweather.domain.model.PointMetadata
+import com.kusl.myweather.domain.model.WeatherAlert
 import com.kusl.myweather.domain.model.WeatherTile
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -33,6 +38,18 @@ import retrofit2.Response
  *  - short-TTL grid forecasts honouring NWS `Cache-Control` (clamped),
  *  - conditional GETs (`If-None-Match` -> `304`) to refresh expiry cheaply, and
  *  - serving a stale-but-valid cached copy when NWS is unreachable (offline-first).
+ *
+ * Beyond the core forecast it also gathers the *supplementary* information for
+ * the **primary** location — active alerts, the hourly forecast, the latest
+ * observation, and the set of official source endpoints — so the dashboard can
+ * surface as much as NWS offers. Those fetches are strictly best-effort: each is
+ * wrapped so a failure leaves the headline forecast untouched. They run only for
+ * the coordinate path, not the lightweight grid-recenter peek.
+ *
+ * Transport-level de-duplication, negative caching, and stale-on-error for
+ * *every* call (including the supplementary ones) are handled one layer down by
+ * `HttpCacheInterceptor`; this class keeps the higher-level, domain-aware Room
+ * cache for metadata and forecasts.
  *
  * Ported from the .NET dashboard's `WeatherService`.
  */
@@ -57,6 +74,9 @@ class WeatherRepositoryImpl(
                 metadata = meta.metadata,
                 query = coord,
                 metaStale = meta.stale,
+                fetchSupplementary = true,
+                queryPoint = coord,
+                extras = meta.extras,
             )
         }
     }
@@ -81,13 +101,17 @@ class WeatherRepositoryImpl(
             timeZone = timeZone,
         )
         // No metadata staleness applies here; freshness is governed entirely by
-        // the per-cell forecast cache.
+        // the per-cell forecast cache. This is an ephemeral peek at a neighbouring
+        // cell, so we skip the supplementary (alerts/hourly/observation) fetches.
         return buildArea(
             center = center,
             radius = radius,
             metadata = metadata,
             query = metadata.query,
             metaStale = false,
+            fetchSupplementary = false,
+            queryPoint = null,
+            extras = null,
         )
     }
 
@@ -96,6 +120,10 @@ class WeatherRepositoryImpl(
      * (cache-aside, bounded concurrency) and assemble them into an [AreaWeather].
      * Shared by the coordinate path ([getAreaWeather]) and the grid-recenter path
      * ([getAreaWeatherForGrid]).
+     *
+     * When [fetchSupplementary] is true the primary location is enriched with
+     * alerts (for [queryPoint]), the hourly forecast, the latest observation, and
+     * the source endpoints (from [extras]); all best-effort.
      */
     private suspend fun buildArea(
         center: GridPoint,
@@ -103,6 +131,9 @@ class WeatherRepositoryImpl(
         metadata: PointMetadata,
         query: GeoPoint,
         metaStale: Boolean,
+        fetchSupplementary: Boolean,
+        queryPoint: GeoPoint?,
+        extras: PointPropertiesDto?,
     ): AreaWeatherResult {
         val primary = when (val p = fetchForecast(center)) {
             is ForecastResult.Ok -> p
@@ -137,6 +168,13 @@ class WeatherRepositoryImpl(
             distanceMeters = 0.0,
         )
 
+        // The "as much information as we can get" extras, for the primary location only.
+        val supplementary = if (fetchSupplementary) {
+            gatherSupplementary(center, queryPoint, extras)
+        } else {
+            SupplementaryData()
+        }
+
         // Bound DB growth without discarding our offline fallback: only drop
         // entries that expired more than a week ago.
         runCatching { forecastDao.deleteExpiredBefore(time.nowMs() - STALE_RETENTION_MS) }
@@ -144,7 +182,9 @@ class WeatherRepositoryImpl(
         val fromCache = metaStale || primary.stale
         Telemetry.i(
             "WeatherRepository",
-            "assembled $center tiles=${neighborTiles.size + 1} cache=$fromCache",
+            "assembled $center tiles=${neighborTiles.size + 1} cache=$fromCache " +
+                "alerts=${supplementary.alerts.size} hourly=${supplementary.hourly.size} " +
+                "obs=${supplementary.observation != null}",
         )
         return AreaWeatherResult.Success(
             AreaWeather(
@@ -153,14 +193,100 @@ class WeatherRepositoryImpl(
                 primary = primary.forecast,
                 tiles = listOf(primaryTile) + neighborTiles,
                 fromCache = fromCache,
+                alerts = supplementary.alerts,
+                hourly = supplementary.hourly,
+                observation = supplementary.observation,
+                sources = supplementary.sources,
             ),
         )
     }
 
+    // ── supplementary data (best-effort; never blocks the core forecast) ───────
+
+    private class SupplementaryData(
+        val alerts: List<WeatherAlert> = emptyList(),
+        val hourly: List<ForecastPeriod> = emptyList(),
+        val observation: CurrentObservation? = null,
+        val sources: LocationSources? = null,
+    )
+
+    /**
+     * Gather alerts, the hourly forecast, the latest observation, and the source
+     * endpoints concurrently. Every call is wrapped in `runCatching`, so any
+     * failure degrades to an empty/null field rather than failing the load. All
+     * of these requests still ride the transport cache, so repeated loads of the
+     * same place don't re-hit NWS.
+     */
+    private suspend fun gatherSupplementary(
+        center: GridPoint,
+        queryPoint: GeoPoint?,
+        extras: PointPropertiesDto?,
+    ): SupplementaryData = coroutineScope {
+        val coords = "${center.gridX},${center.gridY}"
+
+        val alertsDeferred = async {
+            val pt = queryPoint ?: return@async emptyList<WeatherAlert>()
+            runCatching {
+                val resp = api.getActiveAlerts(pt.toApiString())
+                if (resp.isSuccessful) NwsMappers.toAlerts(resp.body()) else emptyList()
+            }.getOrDefault(emptyList())
+        }
+
+        val hourlyDeferred = async {
+            runCatching {
+                val resp = api.getForecastHourly(center.gridId, coords)
+                if (resp.isSuccessful) {
+                    NwsMappers.toForecast(center, resp.body())?.periods?.take(HOURLY_LIMIT).orEmpty()
+                } else {
+                    emptyList()
+                }
+            }.getOrDefault(emptyList())
+        }
+
+        val observationDeferred = async {
+            runCatching {
+                val stationsResp = api.getObservationStations(center.gridId, coords)
+                val stationId =
+                    if (stationsResp.isSuccessful) NwsMappers.firstStationId(stationsResp.body()) else null
+                if (stationId == null) {
+                    null
+                } else {
+                    val obsResp = api.getLatestObservation(stationId)
+                    if (obsResp.isSuccessful) NwsMappers.toObservation(obsResp.body(), stationId) else null
+                }
+            }.getOrNull()
+        }
+
+        SupplementaryData(
+            alerts = alertsDeferred.await(),
+            hourly = hourlyDeferred.await(),
+            observation = observationDeferred.await(),
+            sources = extras?.let(::toSources),
+        )
+    }
+
+    private fun toSources(p: PointPropertiesDto) = LocationSources(
+        forecastOffice = p.forecastOffice,
+        radarStation = p.radarStation,
+        forecastZone = p.forecastZone,
+        county = p.county,
+        fireWeatherZone = p.fireWeatherZone,
+        forecastUrl = p.forecast,
+        hourlyForecastUrl = p.forecastHourly,
+        gridDataUrl = p.forecastGridData,
+        observationStationsUrl = p.observationStations,
+    )
+
     // ── metadata (long-lived) ─────────────────────────────────────────────────
 
     private sealed interface MetaResult {
-        data class Ok(val metadata: PointMetadata, val stale: Boolean) : MetaResult
+        data class Ok(
+            val metadata: PointMetadata,
+            val stale: Boolean,
+            /** Raw point properties, present only on a fresh resolution (for source endpoints). */
+            val extras: PointPropertiesDto? = null,
+        ) : MetaResult
+
         data object NoCoverage : MetaResult
         data object Unavailable : MetaResult
     }
@@ -184,11 +310,12 @@ class WeatherRepositoryImpl(
             return cached?.let { MetaResult.Ok(it.toDomain(), stale = true) } ?: MetaResult.Unavailable
         }
 
-        val mapped = NwsMappers.toPointMetadata(coord, response.body())
+        val body = response.body()
+        val mapped = NwsMappers.toPointMetadata(coord, body)
             ?: return cached?.let { MetaResult.Ok(it.toDomain(), stale = true) } ?: MetaResult.NoCoverage
 
         pointDao.upsert(mapped.toEntity(key, retrievedAt = now, expiresAt = now + METADATA_TTL_MS))
-        return MetaResult.Ok(mapped, stale = false)
+        return MetaResult.Ok(mapped, stale = false, extras = body?.properties)
     }
 
     // ── forecast (short-lived, conditional) ────────────────────────────────────
@@ -269,6 +396,9 @@ class WeatherRepositoryImpl(
         // Nominal NWS cell size (~2.5 km), used only to order/label neighbours.
         private const val NOMINAL_CELL_METERS = 2_500.0
         private const val NEIGHBOR_CONCURRENCY = 4
+
+        /** Cap on hourly periods surfaced (the API returns ~156; the next day is plenty). */
+        private const val HOURLY_LIMIT = 24
 
         val METADATA_TTL_MS = 30L * 24 * 60 * 60 * 1000        // 30 days
         val DEFAULT_FORECAST_TTL_MS = 30L * 60 * 1000          // 30 minutes
