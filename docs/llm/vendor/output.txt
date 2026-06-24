@@ -1,6 +1,3 @@
-│                           ├── core
-│                           │   ├── GeoPointTest.kt
-│                           │   ├── GridMathTest.kt
 │                           │   └── TelemetryTest.kt
 │                           ├── data
 │                           │   ├── CacheFreshnessTest.kt
@@ -9989,4 +9986,4 @@ include(":app")
 real	0m2.903s
 user	0m1.358s
 sys	0m1.825s
-kushal@fedora:~/src/kotlin/myweather$ 
+kushal@fedora:~/src/kotlin/myweather$ git mv data/remote/HttpCacheInterceptor.kt   app/src/main/java/com/kusl/myweather/data/remote/HttpCacheInterceptor.kt; git mv ui/components/AlertsBanner.kt          app/src/main/java/com/kusl/myweather/ui/components/AlertsBanner.kt; git mv ui/components/PeriodDetailSheet.kt     app/src/main/java/com/kusl/myweather/ui/components/PeriodDetailSheet.kt; git mv ui/components/WeatherExtras.kt         app/src/main/java/com/kusl/myweather/ui/components/WeatherExtras.kt; rmdir ui/components ui data/remote data 2>/dev/null; git commit -m "fix: move new Kotlin sources into app source set (was committed at repo root)"
