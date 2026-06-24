@@ -1,4 +1,4 @@
-kushal@fedora:~/src/kotlin/myweather$ cd ~/src/kotlin/myweather/; time bash export.sh
+kushal@fedora:~$ cd ~/src/kotlin/myweather/; time bash export.sh
 ################################################################################
 #                                                                              #
 #   REPOSITORY CONTEXT DUMP                                                    #
@@ -8,7 +8,7 @@ kushal@fedora:~/src/kotlin/myweather$ cd ~/src/kotlin/myweather/; time bash expo
 
 DUMP METADATA
 ═════════════════════════════════════════════════════════════════════════════════
-  Generated at   : 2026-06-21T15:52:48-04:00
+  Generated at   : 2026-06-24T13:09:34-04:00
   Generator      : export.sh
   Host           : fedora
   User           : kushal
@@ -18,10 +18,10 @@ REPOSITORY METADATA
 ═════════════════════════════════════════════════════════════════════════════════
   Repository root: /home/kushal/src/kotlin/myweather
   Branch         : main
-  Commit (full)  : e97723cf23061caa76da45a2402ea8df1cbaedd5
-  Commit (short) : e97723c
-  Commit date    : 2026-06-21 15:52:34 -0400
-  Commit message : chore: commit Room schema export for WeatherDatabase v1
+  Commit (full)  : 697514e66d173b8fd4e9c06a0bcd6eeb1b9ed906
+  Commit (short) : 697514e
+  Commit date    : 2026-06-21 15:53:15 -0400
+  Commit message : run dump
   Remote origin  : git@github.com:kusl/myweather.git
   Files included : 85
   Excluded path  : docs/llm/
@@ -8598,12 +8598,12 @@ include(":app")
   Files dumped   : 85
   Total size     : 291.5 KiB (298510 bytes)
   Output file    : /home/kushal/src/kotlin/myweather/docs/llm/dump.txt
-  Completed at   : 2026-06-21T15:52:51-04:00
+  Completed at   : 2026-06-24T13:09:38-04:00
 ################################################################################
 # END OF DUMP
 ################################################################################
 
-real	0m2.698s
-user	0m1.253s
-sys	0m1.764s
+real	0m3.556s
+user	0m1.508s
+sys	0m2.306s
 kushal@fedora:~/src/kotlin/myweather$ 
