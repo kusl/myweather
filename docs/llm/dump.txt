@@ -7,7 +7,7 @@
 
 DUMP METADATA
 ═════════════════════════════════════════════════════════════════════════════════
-  Generated at   : 2026-06-24T18:49:03-04:00
+  Generated at   : 2026-06-24T18:57:54-04:00
   Generator      : export.sh
   Host           : fedora
   User           : kushal
@@ -17,17 +17,17 @@ REPOSITORY METADATA
 ═════════════════════════════════════════════════════════════════════════════════
   Repository root: /home/kushal/src/kotlin/myweather
   Branch         : main
-  Commit (full)  : c957757d32a9c8816b32cb30a57b3b4db41136cc
-  Commit (short) : c957757
-  Commit date    : 2026-06-24 13:58:12 -0400
-  Commit message : add continuing claude response
+  Commit (full)  : 84e58615b10ce8ac02db39aa3a2207bb08e56dd1
+  Commit (short) : 84e5861
+  Commit date    : 2026-06-24 18:57:44 -0400
+  Commit message : add all changes
   Remote origin  : git@github.com:kusl/myweather.git
-  Files included : 85
+  Files included : 90
   Excluded path  : docs/llm/
 
 GIT WORKING TREE STATUS (first 20 lines)
 ═════════════════════════════════════════════════════════════════════════════════
- M docs/llm/vendor/claude-conversations.md
+  (clean — no uncommitted changes)
 
 ################################################################################
 # FILE: export.sh  [THIS SCRIPT — included for full context]
@@ -395,7 +395,7 @@ FOOTER
 mv -f "$TMP_FILE" "$OUTPUT_FILE"
 
 ################################################################################
-# FILE TREE  (all 85 included files)
+# FILE TREE  (all 90 included files)
 ################################################################################
 .
 .
@@ -405,7 +405,8 @@ mv -f "$TMP_FILE" "$OUTPUT_FILE"
 │   ├── README.md
 │   ├── schemas
 │   │   └── com.kusl.myweather.data.local.WeatherDatabase
-│   │       └── 1.json
+│   │       ├── 1.json
+│   │       └── 2.json
 │   └── src
 │       ├── androidTest
 │       │   └── java
@@ -517,6 +518,9 @@ mv -f "$TMP_FILE" "$OUTPUT_FILE"
 │                               └── dashboard
 │                                   └── DashboardViewModelTest.kt
 ├── build.gradle.kts
+├── data
+│   └── remote
+│       └── HttpCacheInterceptor.kt
 ├── docs
 │   ├── ARCHITECTURE.md
 │   ├── CACHING.md
@@ -539,7 +543,12 @@ mv -f "$TMP_FILE" "$OUTPUT_FILE"
 ├── gradlew
 ├── gradlew.bat
 ├── README.md
-└── settings.gradle.kts
+├── settings.gradle.kts
+└── ui
+    └── components
+        ├── AlertsBanner.kt
+        ├── PeriodDetailSheet.kt
+        └── WeatherExtras.kt
 
 
 ################################################################################
@@ -1092,6 +1101,286 @@ by package structure and interface seams rather than by module boundaries.
 }
 
 ################################################################################
+# FILE: app/schemas/com.kusl.myweather.data.local.WeatherDatabase/2.json
+################################################################################
+
+--- METADATA ---
+  File name:             2.json
+  Relative path:         app/schemas/com.kusl.myweather.data.local.WeatherDatabase/2.json
+  Absolute path:         /home/kushal/src/kotlin/myweather/app/schemas/com.kusl.myweather.data.local.WeatherDatabase/2.json
+  Size:                  7.6 KiB (7880 bytes)
+  Last modified:         2026-06-24 18:57:10.282555441 -0400
+  Permissions:           -rw-r--r--
+  Owner:                 kushal:kushal
+  Inode:                 16817578
+  Hard links:            1
+  MIME type:             application/json
+  SHA-256:               6e567fb4378690504680f113c2ae3c7bc7d77150af17ff689a35611367cded90
+  Last git commit:       84e5861 2026-06-24 18:57:44 -0400 add all changes
+
+--- CONTENT ---
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 2,
+    "identityHash": "GENERATED_BY_KSP_AT_BUILD_TIME",
+    "entities": [
+      {
+        "tableName": "point_metadata",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`cacheKey` TEXT NOT NULL, `queryLatitude` REAL NOT NULL, `queryLongitude` REAL NOT NULL, `gridId` TEXT NOT NULL, `gridX` INTEGER NOT NULL, `gridY` INTEGER NOT NULL, `city` TEXT, `state` TEXT, `timeZone` TEXT, `retrievedAtEpochMs` INTEGER NOT NULL, `expiresAtEpochMs` INTEGER NOT NULL, PRIMARY KEY(`cacheKey`))",
+        "fields": [
+          {
+            "fieldPath": "cacheKey",
+            "columnName": "cacheKey",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "queryLatitude",
+            "columnName": "queryLatitude",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "queryLongitude",
+            "columnName": "queryLongitude",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "gridId",
+            "columnName": "gridId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "gridX",
+            "columnName": "gridX",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "gridY",
+            "columnName": "gridY",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "city",
+            "columnName": "city",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "state",
+            "columnName": "state",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "timeZone",
+            "columnName": "timeZone",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "retrievedAtEpochMs",
+            "columnName": "retrievedAtEpochMs",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "expiresAtEpochMs",
+            "columnName": "expiresAtEpochMs",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "cacheKey"
+          ]
+        }
+      },
+      {
+        "tableName": "forecast_cache",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`gridKey` TEXT NOT NULL, `gridId` TEXT NOT NULL, `gridX` INTEGER NOT NULL, `gridY` INTEGER NOT NULL, `payloadJson` TEXT NOT NULL, `etag` TEXT, `retrievedAtEpochMs` INTEGER NOT NULL, `expiresAtEpochMs` INTEGER NOT NULL, PRIMARY KEY(`gridKey`))",
+        "fields": [
+          {
+            "fieldPath": "gridKey",
+            "columnName": "gridKey",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "gridId",
+            "columnName": "gridId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "gridX",
+            "columnName": "gridX",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "gridY",
+            "columnName": "gridY",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "payloadJson",
+            "columnName": "payloadJson",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "etag",
+            "columnName": "etag",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "retrievedAtEpochMs",
+            "columnName": "retrievedAtEpochMs",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "expiresAtEpochMs",
+            "columnName": "expiresAtEpochMs",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "gridKey"
+          ]
+        }
+      },
+      {
+        "tableName": "saved_location",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `label` TEXT NOT NULL, `latitude` REAL NOT NULL, `longitude` REAL NOT NULL, `createdAtEpochMs` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "label",
+            "columnName": "label",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "latitude",
+            "columnName": "latitude",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "longitude",
+            "columnName": "longitude",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAtEpochMs",
+            "columnName": "createdAtEpochMs",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "http_cache",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`cacheKey` TEXT NOT NULL, `url` TEXT NOT NULL, `method` TEXT NOT NULL, `statusCode` INTEGER NOT NULL, `statusMessage` TEXT NOT NULL, `contentType` TEXT, `body` TEXT NOT NULL, `etag` TEXT, `retrievedAtEpochMs` INTEGER NOT NULL, `expiresAtEpochMs` INTEGER NOT NULL, PRIMARY KEY(`cacheKey`))",
+        "fields": [
+          {
+            "fieldPath": "cacheKey",
+            "columnName": "cacheKey",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "url",
+            "columnName": "url",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "method",
+            "columnName": "method",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "statusCode",
+            "columnName": "statusCode",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "statusMessage",
+            "columnName": "statusMessage",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "contentType",
+            "columnName": "contentType",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "body",
+            "columnName": "body",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "etag",
+            "columnName": "etag",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "retrievedAtEpochMs",
+            "columnName": "retrievedAtEpochMs",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "expiresAtEpochMs",
+            "columnName": "expiresAtEpochMs",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "cacheKey"
+          ]
+        }
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'GENERATED_BY_KSP_AT_BUILD_TIME')"
+    ]
+  }
+}
+
+
+################################################################################
 # FILE: app/src/androidTest/java/com/kusl/myweather/data/local/WeatherDaoTest.kt
 ################################################################################
 
@@ -1632,15 +1921,15 @@ object SystemTimeSource : TimeSource {
   File name:             Daos.kt
   Relative path:         app/src/main/java/com/kusl/myweather/data/local/dao/Daos.kt
   Absolute path:         /home/kushal/src/kotlin/myweather/app/src/main/java/com/kusl/myweather/data/local/dao/Daos.kt
-  Size:                  1.6 KiB (1674 bytes)
-  Last modified:         2026-06-19 16:52:24.000000000 -0400
+  Size:                  2.4 KiB (2556 bytes)
+  Last modified:         2026-06-24 18:53:55.071942674 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 16257572
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               9dd98093801919aef6802cca75b59b447f56403bfba70da967583ec1a0304b4c
-  Last git commit:       0386d8e 2026-06-20 08:06:03 -0400 move one folder up
+  SHA-256:               06927af00912f91381ae1b23af084f7532e8d6298959026038a98266268ebb13
+  Last git commit:       84e5861 2026-06-24 18:57:44 -0400 add all changes
 
 --- CONTENT ---
 package com.kusl.myweather.data.local.dao
@@ -1651,6 +1940,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.kusl.myweather.data.local.entity.ForecastCacheEntity
+import com.kusl.myweather.data.local.entity.HttpCacheEntity
 import com.kusl.myweather.data.local.entity.PointMetadataEntity
 import com.kusl.myweather.data.local.entity.SavedLocationEntity
 import kotlinx.coroutines.flow.Flow
@@ -1674,6 +1964,30 @@ interface ForecastCacheDao {
 
     @Query("DELETE FROM forecast_cache WHERE expiresAtEpochMs < :cutoffEpochMs")
     suspend fun deleteExpiredBefore(cutoffEpochMs: Long)
+}
+
+/**
+ * DAO for the universal transport cache.
+ *
+ * These methods are intentionally **blocking** (not `suspend`): they are called
+ * from inside [com.kusl.myweather.data.remote.HttpCacheInterceptor], which runs
+ * on OkHttp's background dispatcher, never the main thread. Keeping them
+ * synchronous lets the interceptor read/write the cache inline without launching
+ * a coroutine mid-chain.
+ */
+@Dao
+interface HttpCacheDao {
+    @Query("SELECT * FROM http_cache WHERE cacheKey = :key LIMIT 1")
+    fun getByKey(key: String): HttpCacheEntity?
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun upsert(entity: HttpCacheEntity)
+
+    @Query("DELETE FROM http_cache WHERE expiresAtEpochMs < :cutoffEpochMs")
+    fun deleteExpiredBefore(cutoffEpochMs: Long)
+
+    @Query("DELETE FROM http_cache")
+    fun clear()
 }
 
 @Dao
@@ -1703,15 +2017,15 @@ interface SavedLocationDao {
   File name:             Entities.kt
   Relative path:         app/src/main/java/com/kusl/myweather/data/local/entity/Entities.kt
   Absolute path:         /home/kushal/src/kotlin/myweather/app/src/main/java/com/kusl/myweather/data/local/entity/Entities.kt
-  Size:                  1.5 KiB (1565 bytes)
-  Last modified:         2026-06-19 16:52:24.000000000 -0400
+  Size:                  2.4 KiB (2544 bytes)
+  Last modified:         2026-06-24 18:53:46.504959673 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 16257575
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               ba8a9cbf71c36b41ebfcc83fb32ca65a60925253bc5e19dfe27572959b2c1b88
-  Last git commit:       0386d8e 2026-06-20 08:06:03 -0400 move one folder up
+  SHA-256:               2020c8140c3b6c5ec1bec09b689472de3516008ea8b6fcb39adb505208eb5d4d
+  Last git commit:       84e5861 2026-06-24 18:57:44 -0400 add all changes
 
 --- CONTENT ---
 package com.kusl.myweather.data.local.entity
@@ -1767,6 +2081,31 @@ data class SavedLocationEntity(
     val createdAtEpochMs: Long,
 )
 
+/**
+ * The universal transport-level HTTP cache, written by [com.kusl.myweather.data.remote.HttpCacheInterceptor].
+ *
+ * One row per resolved request, keyed by `"$method $url"` so that any two calls
+ * which resolve to the same endpoint collapse onto a single row (request
+ * de-duplication). The raw response body is stored verbatim as text — NWS speaks
+ * JSON/GeoJSON, which is UTF-8 — together with the status, `ETag`, content type,
+ * and the computed expiry that governs freshness. Error statuses (notably the
+ * cacheable `404`s NWS returns) are stored here too.
+ */
+@Entity(tableName = "http_cache")
+data class HttpCacheEntity(
+    /** `"$method $url"` — the de-duplication key. */
+    @PrimaryKey val cacheKey: String,
+    val url: String,
+    val method: String,
+    val statusCode: Int,
+    val statusMessage: String,
+    val contentType: String?,
+    val body: String,
+    val etag: String?,
+    val retrievedAtEpochMs: Long,
+    val expiresAtEpochMs: Long,
+)
+
 
 ################################################################################
 # FILE: app/src/main/java/com/kusl/myweather/data/local/WeatherDatabase.kt
@@ -1776,15 +2115,15 @@ data class SavedLocationEntity(
   File name:             WeatherDatabase.kt
   Relative path:         app/src/main/java/com/kusl/myweather/data/local/WeatherDatabase.kt
   Absolute path:         /home/kushal/src/kotlin/myweather/app/src/main/java/com/kusl/myweather/data/local/WeatherDatabase.kt
-  Size:                  941 B (941 bytes)
-  Last modified:         2026-06-19 16:52:24.000000000 -0400
+  Size:                  1.5 KiB (1602 bytes)
+  Last modified:         2026-06-24 18:54:09.585418560 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 16257573
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               82778df8bc413a6b94b5644763b94027b03987bdc582ef019b9cc92f25e73f31
-  Last git commit:       0386d8e 2026-06-20 08:06:03 -0400 move one folder up
+  SHA-256:               399a268f57860bfd9930f50e0af17abffabbcdab59f1bc61eba3f629e1b25c8a
+  Last git commit:       84e5861 2026-06-24 18:57:44 -0400 add all changes
 
 --- CONTENT ---
 package com.kusl.myweather.data.local
@@ -1792,25 +2131,39 @@ package com.kusl.myweather.data.local
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import com.kusl.myweather.data.local.dao.ForecastCacheDao
+import com.kusl.myweather.data.local.dao.HttpCacheDao
 import com.kusl.myweather.data.local.dao.PointMetadataDao
 import com.kusl.myweather.data.local.dao.SavedLocationDao
 import com.kusl.myweather.data.local.entity.ForecastCacheEntity
+import com.kusl.myweather.data.local.entity.HttpCacheEntity
 import com.kusl.myweather.data.local.entity.PointMetadataEntity
 import com.kusl.myweather.data.local.entity.SavedLocationEntity
 
+/**
+ * Schema history:
+ *  - v1: point_metadata, forecast_cache, saved_location
+ *  - v2: + http_cache (universal transport cache; see HttpCacheInterceptor)
+ *
+ * This is a pure cache database, so [com.kusl.myweather.di.AppContainer] opens it
+ * with `fallbackToDestructiveMigration` — on a version bump the old data is
+ * dropped and transparently re-fetched from NWS. No hand-written migration is
+ * needed; the exported schema JSON is committed for review/CI.
+ */
 @Database(
     entities = [
         PointMetadataEntity::class,
         ForecastCacheEntity::class,
         SavedLocationEntity::class,
+        HttpCacheEntity::class,
     ],
-    version = 1,
+    version = 2,
     exportSchema = true,
 )
 abstract class WeatherDatabase : RoomDatabase() {
     abstract fun pointMetadataDao(): PointMetadataDao
     abstract fun forecastCacheDao(): ForecastCacheDao
     abstract fun savedLocationDao(): SavedLocationDao
+    abstract fun httpCacheDao(): HttpCacheDao
 
     companion object {
         const val NAME = "myweather.db"
@@ -2033,27 +2386,33 @@ interface LocationSource {
   File name:             NwsMappers.kt
   Relative path:         app/src/main/java/com/kusl/myweather/data/mapper/NwsMappers.kt
   Absolute path:         /home/kushal/src/kotlin/myweather/app/src/main/java/com/kusl/myweather/data/mapper/NwsMappers.kt
-  Size:                  2.3 KiB (2438 bytes)
-  Last modified:         2026-06-19 16:51:22.000000000 -0400
+  Size:                  7.4 KiB (7608 bytes)
+  Last modified:         2026-06-24 18:52:13.849387893 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 16257568
   Hard links:            1
-  MIME type:             text/plain
-  SHA-256:               753712812a16faec9d56b5ea838e93c262da808ad351c6120cbf3adb3ff8949e
-  Last git commit:       0386d8e 2026-06-20 08:06:03 -0400 move one folder up
+  MIME type:             text/x-c
+  SHA-256:               449f2125385ad606de0d3626121918cd0e8f595a12c0502110e0160abbab2895
+  Last git commit:       84e5861 2026-06-24 18:57:44 -0400 add all changes
 
 --- CONTENT ---
 package com.kusl.myweather.data.mapper
 
 import com.kusl.myweather.core.GeoPoint
 import com.kusl.myweather.core.GridPoint
+import com.kusl.myweather.data.remote.dto.AlertsResponseDto
 import com.kusl.myweather.data.remote.dto.ForecastResponseDto
+import com.kusl.myweather.data.remote.dto.ObservationResponseDto
 import com.kusl.myweather.data.remote.dto.PeriodDto
 import com.kusl.myweather.data.remote.dto.PointResponseDto
+import com.kusl.myweather.data.remote.dto.QuantitativeValueDto
+import com.kusl.myweather.data.remote.dto.StationsResponseDto
+import com.kusl.myweather.domain.model.CurrentObservation
 import com.kusl.myweather.domain.model.Forecast
 import com.kusl.myweather.domain.model.ForecastPeriod
 import com.kusl.myweather.domain.model.PointMetadata
+import com.kusl.myweather.domain.model.WeatherAlert
 import kotlin.math.roundToInt
 
 /**
@@ -2093,6 +2452,114 @@ object NwsMappers {
         )
     }
 
+    /**
+     * Map an `/alerts/active` FeatureCollection to domain alerts. An alert with
+     * no `event` is dropped (nothing meaningful to show); the coded fields fall
+     * back to "Unknown" and the human text is carried through verbatim. Sorted
+     * most-severe first so the UI can surface the worst alert at the top.
+     */
+    fun toAlerts(dto: AlertsResponseDto?): List<WeatherAlert> {
+        val features = dto?.features ?: return emptyList()
+        return features.mapNotNull { feature ->
+            val p = feature.properties ?: return@mapNotNull null
+            val event = p.event ?: return@mapNotNull null
+            WeatherAlert(
+                id = p.id ?: feature.id ?: event,
+                event = event,
+                severity = p.severity ?: "Unknown",
+                urgency = p.urgency ?: "Unknown",
+                certainty = p.certainty ?: "Unknown",
+                headline = p.headline,
+                description = p.description.orEmpty(),
+                instruction = p.instruction,
+                areaDesc = p.areaDesc,
+                onset = p.onset,
+                expires = p.expires,
+                ends = p.ends,
+                senderName = p.senderName,
+            )
+        }.sortedBy { WeatherAlert.severityRank(it.severity) }
+    }
+
+    /** The first usable station identifier from a `/stations` response, or null. */
+    fun firstStationId(dto: StationsResponseDto?): String? {
+        val features = dto?.features ?: return null
+        for (feature in features) {
+            val id = feature.properties?.stationIdentifier?.takeIf { it.isNotBlank() }
+                ?: feature.id?.substringAfterLast('/')?.takeIf { it.isNotBlank() }
+            if (id != null) return id
+        }
+        return null
+    }
+
+    /**
+     * Map a latest-observation payload to domain, converting NWS's SI units to
+     * the app's US-customary display units. Conversions are unit-code aware and
+     * default to the SI unit NWS actually sends (°C, km/h, Pa, metres). Returns
+     * null when there's nothing measured to show.
+     */
+    fun toObservation(dto: ObservationResponseDto?, stationId: String?): CurrentObservation? {
+        val p = dto?.properties ?: return null
+        val observation = CurrentObservation(
+            timestamp = p.timestamp,
+            textDescription = p.textDescription?.takeIf { it.isNotBlank() },
+            temperatureF = celsiusToFahrenheit(p.temperature)?.round(1),
+            dewpointF = celsiusToFahrenheit(p.dewpoint)?.round(1),
+            relativeHumidityPct = p.relativeHumidity?.value?.roundToInt(),
+            windSpeedMph = toMph(p.windSpeed)?.round(1),
+            windDirectionDeg = p.windDirection?.value?.roundToInt(),
+            windGustMph = toMph(p.windGust)?.round(1),
+            pressureInHg = toInchesOfMercury(p.barometricPressure ?: p.seaLevelPressure)?.round(2),
+            visibilityMiles = toMiles(p.visibility)?.round(1),
+            stationId = stationId,
+        )
+        return observation.takeUnless { it.isEmpty }
+    }
+
+    // ── unit conversions (defensive: inspect unitCode, fall back to NWS SI) ────
+
+    private fun celsiusToFahrenheit(q: QuantitativeValueDto?): Double? {
+        val v = q?.value ?: return null
+        val unit = q.unitCode.orEmpty()
+        return if (unit.contains("degF", ignoreCase = true)) v else v * 9.0 / 5.0 + 32.0
+    }
+
+    private fun toMph(q: QuantitativeValueDto?): Double? {
+        val v = q?.value ?: return null
+        val unit = q.unitCode.orEmpty()
+        return when {
+            unit.contains("mph", ignoreCase = true) || unit.contains("mi_h", ignoreCase = true) -> v
+            unit.contains("m_s-1", ignoreCase = true) -> v * 2.236_936_292
+            else -> v * 0.621_371_192 // km/h (NWS default: km_h-1) -> mph
+        }
+    }
+
+    private fun toInchesOfMercury(q: QuantitativeValueDto?): Double? {
+        val v = q?.value ?: return null
+        val unit = q.unitCode.orEmpty()
+        return when {
+            unit.contains("inHg", ignoreCase = true) -> v
+            unit.contains("hPa", ignoreCase = true) || unit.contains("mbar", ignoreCase = true) -> v / 33.863_886_667
+            else -> v / 3386.388_666_7 // Pa (NWS default) -> inHg
+        }
+    }
+
+    private fun toMiles(q: QuantitativeValueDto?): Double? {
+        val v = q?.value ?: return null
+        val unit = q.unitCode.orEmpty()
+        return when {
+            unit.contains("km", ignoreCase = true) -> v / 1.609_344
+            unit.contains("mile", ignoreCase = true) -> v
+            else -> v / 1609.344 // metres (NWS default) -> miles
+        }
+    }
+
+    private fun Double.round(decimals: Int): Double {
+        var factor = 1.0
+        repeat(decimals) { factor *= 10 }
+        return (this * factor).roundToInt() / factor
+    }
+
     private fun PeriodDto.toDomain(): ForecastPeriod = ForecastPeriod(
         number = number,
         name = name.orEmpty(),
@@ -2119,15 +2586,15 @@ object NwsMappers {
   File name:             NwsDtos.kt
   Relative path:         app/src/main/java/com/kusl/myweather/data/remote/dto/NwsDtos.kt
   Absolute path:         /home/kushal/src/kotlin/myweather/app/src/main/java/com/kusl/myweather/data/remote/dto/NwsDtos.kt
-  Size:                  2.4 KiB (2479 bytes)
-  Last modified:         2026-06-19 16:51:22.000000000 -0400
+  Size:                  5.4 KiB (5581 bytes)
+  Last modified:         2026-06-24 18:52:02.057188874 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 16257562
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               94189db7899d94cef5e507711f035221a12daa17c4102a7d59bc07a2ec0f1a14
-  Last git commit:       0386d8e 2026-06-20 08:06:03 -0400 move one folder up
+  SHA-256:               ee6a80742fcb49644de7846ccec47d6e9b648803fa3efc209183fa1d7c1f14cd
+  Last git commit:       84e5861 2026-06-24 18:57:44 -0400 add all changes
 
 --- CONTENT ---
 package com.kusl.myweather.data.remote.dto
@@ -2143,6 +2610,10 @@ import kotlinx.serialization.Serializable
  * Shapes verified against the live samples for:
  *   GET /points/{lat},{lon}
  *   GET /gridpoints/{office}/{x},{y}/forecast
+ *   GET /gridpoints/{office}/{x},{y}/forecast/hourly   (same shape as /forecast)
+ *   GET /gridpoints/{office}/{x},{y}/stations
+ *   GET /stations/{id}/observations/latest
+ *   GET /alerts/active?point={lat},{lon}
  */
 
 // ── /points ──────────────────────────────────────────────────────────────────
@@ -2159,6 +2630,13 @@ data class PointPropertiesDto(
     @SerialName("gridY") val gridY: Int? = null,
     val forecast: String? = null,
     val forecastHourly: String? = null,
+    val forecastGridData: String? = null,
+    val observationStations: String? = null,
+    val forecastOffice: String? = null,
+    val forecastZone: String? = null,
+    val county: String? = null,
+    val fireWeatherZone: String? = null,
+    val radarStation: String? = null,
     val timeZone: String? = null,
     val relativeLocation: RelativeLocationDto? = null,
 )
@@ -2174,7 +2652,7 @@ data class RelativeLocationPropertiesDto(
     val state: String? = null,
 )
 
-// ── /gridpoints/.../forecast ───────────────────────────────────────────────────
+// ── /gridpoints/.../forecast (and /forecast/hourly) ────────────────────────────
 
 @Serializable
 data class ForecastResponseDto(
@@ -2211,6 +2689,86 @@ data class QuantitativeValueDto(
     val value: Double? = null,
 )
 
+// ── /alerts/active ─────────────────────────────────────────────────────────────
+
+@Serializable
+data class AlertsResponseDto(
+    val features: List<AlertFeatureDto>? = null,
+)
+
+@Serializable
+data class AlertFeatureDto(
+    val id: String? = null,
+    val properties: AlertPropertiesDto? = null,
+)
+
+@Serializable
+data class AlertPropertiesDto(
+    val id: String? = null,
+    val areaDesc: String? = null,
+    val sent: String? = null,
+    val effective: String? = null,
+    val onset: String? = null,
+    val expires: String? = null,
+    val ends: String? = null,
+    val status: String? = null,
+    val messageType: String? = null,
+    val category: String? = null,
+    val severity: String? = null,
+    val certainty: String? = null,
+    val urgency: String? = null,
+    val event: String? = null,
+    val senderName: String? = null,
+    val headline: String? = null,
+    val description: String? = null,
+    val instruction: String? = null,
+    val response: String? = null,
+)
+
+// ── /gridpoints/.../stations ───────────────────────────────────────────────────
+
+@Serializable
+data class StationsResponseDto(
+    val features: List<StationFeatureDto>? = null,
+)
+
+@Serializable
+data class StationFeatureDto(
+    val id: String? = null,
+    val properties: StationPropertiesDto? = null,
+)
+
+@Serializable
+data class StationPropertiesDto(
+    val stationIdentifier: String? = null,
+    val name: String? = null,
+)
+
+// ── /stations/{id}/observations/latest ─────────────────────────────────────────
+
+@Serializable
+data class ObservationResponseDto(
+    val properties: ObservationPropertiesDto? = null,
+)
+
+@Serializable
+data class ObservationPropertiesDto(
+    val timestamp: String? = null,
+    val textDescription: String? = null,
+    val rawMessage: String? = null,
+    val temperature: QuantitativeValueDto? = null,
+    val dewpoint: QuantitativeValueDto? = null,
+    val windDirection: QuantitativeValueDto? = null,
+    val windSpeed: QuantitativeValueDto? = null,
+    val windGust: QuantitativeValueDto? = null,
+    val barometricPressure: QuantitativeValueDto? = null,
+    val seaLevelPressure: QuantitativeValueDto? = null,
+    val visibility: QuantitativeValueDto? = null,
+    val relativeHumidity: QuantitativeValueDto? = null,
+    val windChill: QuantitativeValueDto? = null,
+    val heatIndex: QuantitativeValueDto? = null,
+)
+
 
 ################################################################################
 # FILE: app/src/main/java/com/kusl/myweather/data/remote/NetworkModule.kt
@@ -2220,20 +2778,23 @@ data class QuantitativeValueDto(
   File name:             NetworkModule.kt
   Relative path:         app/src/main/java/com/kusl/myweather/data/remote/NetworkModule.kt
   Absolute path:         /home/kushal/src/kotlin/myweather/app/src/main/java/com/kusl/myweather/data/remote/NetworkModule.kt
-  Size:                  1.4 KiB (1495 bytes)
-  Last modified:         2026-06-19 16:51:58.000000000 -0400
+  Size:                  2.1 KiB (2173 bytes)
+  Last modified:         2026-06-24 18:52:33.992947885 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 16257560
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               a94da56ecf5bc5403f3a17de692cbbc446a9c9fcf7b6f8ace4dda488311a0d04
-  Last git commit:       0386d8e 2026-06-20 08:06:03 -0400 move one folder up
+  SHA-256:               1da800b6b38e8e2b94af66e2e230714a7721c3150d290af591c6002b9c57ec3b
+  Last git commit:       84e5861 2026-06-24 18:57:44 -0400 add all changes
 
 --- CONTENT ---
 package com.kusl.myweather.data.remote
 
 import com.kusl.myweather.BuildConfig
+import com.kusl.myweather.core.SystemTimeSource
+import com.kusl.myweather.core.TimeSource
+import com.kusl.myweather.data.local.dao.HttpCacheDao
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -2249,8 +2810,20 @@ object NetworkModule {
 
     const val BASE_URL = "https://api.weather.gov/"
 
-    fun okHttpClient(userAgentProvider: UserAgentProvider): OkHttpClient {
+    /**
+     * @param httpCacheDao backs the universal [HttpCacheInterceptor].
+     * @param time injected clock so the cache's freshness policy is testable.
+     */
+    fun okHttpClient(
+        userAgentProvider: UserAgentProvider,
+        httpCacheDao: HttpCacheDao,
+        time: TimeSource = SystemTimeSource,
+    ): OkHttpClient {
         val builder = OkHttpClient.Builder()
+            // Outermost: a fresh cache hit short-circuits here, before any header
+            // work or socket is opened. Misses fall through to the header
+            // interceptor and the network.
+            .addInterceptor(HttpCacheInterceptor(httpCacheDao, time))
             .addInterceptor(NwsHeaderInterceptor(userAgentProvider))
             .connectTimeout(15, TimeUnit.SECONDS)
             .readTimeout(20, TimeUnit.SECONDS)
@@ -2285,25 +2858,29 @@ object NetworkModule {
   File name:             NwsApi.kt
   Relative path:         app/src/main/java/com/kusl/myweather/data/remote/NwsApi.kt
   Absolute path:         /home/kushal/src/kotlin/myweather/app/src/main/java/com/kusl/myweather/data/remote/NwsApi.kt
-  Size:                  1.2 KiB (1275 bytes)
-  Last modified:         2026-06-19 16:51:58.000000000 -0400
+  Size:                  3.0 KiB (3161 bytes)
+  Last modified:         2026-06-24 18:51:49.890105166 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 16257566
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               7c8cfeb11fafa60dab8499083f7ca8bae8480b6a0b7c1fc85f61e6b019744a9f
-  Last git commit:       0386d8e 2026-06-20 08:06:03 -0400 move one folder up
+  SHA-256:               92c7b1a58601e63d2d6426a7cf61f42a2a1a079fe88440665880de56791b227f
+  Last git commit:       84e5861 2026-06-24 18:57:44 -0400 add all changes
 
 --- CONTENT ---
 package com.kusl.myweather.data.remote
 
+import com.kusl.myweather.data.remote.dto.AlertsResponseDto
 import com.kusl.myweather.data.remote.dto.ForecastResponseDto
+import com.kusl.myweather.data.remote.dto.ObservationResponseDto
 import com.kusl.myweather.data.remote.dto.PointResponseDto
+import com.kusl.myweather.data.remote.dto.StationsResponseDto
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 /**
  * Typed view over the public NWS API. Returns Retrofit [Response] (not the bare
@@ -2312,6 +2889,10 @@ import retrofit2.http.Path
  *
  * Coordinate/grid path segments are passed pre-encoded so the literal commas
  * (`lat,lon`, `x,y`) reach NWS unescaped, exactly as the API expects.
+ *
+ * Every call here transparently flows through [HttpCacheInterceptor], so each
+ * endpoint — including the supplementary ones below — is de-duplicated,
+ * negative-cached, and served stale-on-error without any per-call work.
  */
 interface NwsApi {
 
@@ -2328,6 +2909,40 @@ interface NwsApi {
         @Path(value = "coords", encoded = true) coords: String,
         @Header("If-None-Match") ifNoneMatch: String? = null,
     ): Response<ForecastResponseDto>
+
+    /**
+     * Active watches/warnings/advisories for a coordinate. `point` is `"lat,lon"`.
+     * Same `/alerts/active` query the NWS site uses; returns a GeoJSON
+     * FeatureCollection of alerts (often empty).
+     */
+    @GET("alerts/active")
+    suspend fun getActiveAlerts(
+        @Query(value = "point", encoded = true) point: String,
+    ): Response<AlertsResponseDto>
+
+    /**
+     * The hour-by-hour forecast for a grid cell — same payload shape as
+     * [getForecast], just finer-grained periods. `coords` is `"gridX,gridY"`.
+     */
+    @GET("gridpoints/{office}/{coords}/forecast/hourly")
+    suspend fun getForecastHourly(
+        @Path("office") office: String,
+        @Path(value = "coords", encoded = true) coords: String,
+        @Header("If-None-Match") ifNoneMatch: String? = null,
+    ): Response<ForecastResponseDto>
+
+    /** The observation stations serving a grid cell. `coords` is `"gridX,gridY"`. */
+    @GET("gridpoints/{office}/{coords}/stations")
+    suspend fun getObservationStations(
+        @Path("office") office: String,
+        @Path(value = "coords", encoded = true) coords: String,
+    ): Response<StationsResponseDto>
+
+    /** The latest surface observation from a station, e.g. `"KAKQ"`. */
+    @GET("stations/{stationId}/observations/latest")
+    suspend fun getLatestObservation(
+        @Path(value = "stationId", encoded = true) stationId: String,
+    ): Response<ObservationResponseDto>
 }
 
 
@@ -2339,15 +2954,15 @@ interface NwsApi {
   File name:             NwsHeaderInterceptor.kt
   Relative path:         app/src/main/java/com/kusl/myweather/data/remote/NwsHeaderInterceptor.kt
   Absolute path:         /home/kushal/src/kotlin/myweather/app/src/main/java/com/kusl/myweather/data/remote/NwsHeaderInterceptor.kt
-  Size:                  942 B (942 bytes)
-  Last modified:         2026-06-19 16:51:58.000000000 -0400
+  Size:                  1.0 KiB (1062 bytes)
+  Last modified:         2026-06-24 18:53:35.201982102 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 16257564
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               4a5a058a04febb296c61f47e6332a72a7f00325f497b879fe049dcb2ba260cd8
-  Last git commit:       0386d8e 2026-06-20 08:06:03 -0400 move one folder up
+  SHA-256:               edad79378ff99a32aa0d5f99f12a8572d1d431d0b0ef342577484ff20ec10af9
+  Last git commit:       84e5861 2026-06-24 18:57:44 -0400 add all changes
 
 --- CONTENT ---
 package com.kusl.myweather.data.remote
@@ -2361,9 +2976,10 @@ import okhttp3.Response
  *    value in Settings takes effect immediately.
  *  - `Accept: application/geo+json`: the GeoJSON representation we parse.
  *
- * We do NOT install an OkHttp disk cache; forecast freshness is managed
- * explicitly in Room (TTL + conditional GET), so a second HTTP cache would only
- * add confusion.
+ * Caching is handled one layer out by [HttpCacheInterceptor] (a single,
+ * Room-backed transport cache) — not by an OkHttp disk cache — so freshness,
+ * de-duplication, and negative caching all live in one explicit place. This
+ * interceptor therefore concerns itself only with headers.
  */
 class NwsHeaderInterceptor(
     private val userAgentProvider: UserAgentProvider,
@@ -2653,15 +3269,15 @@ interface SettingsRepository {
   File name:             WeatherRepositoryImpl.kt
   Relative path:         app/src/main/java/com/kusl/myweather/data/WeatherRepositoryImpl.kt
   Absolute path:         /home/kushal/src/kotlin/myweather/app/src/main/java/com/kusl/myweather/data/WeatherRepositoryImpl.kt
-  Size:                  13.1 KiB (13508 bytes)
-  Last modified:         2026-06-21 00:08:15.991539339 -0400
+  Size:                  18.7 KiB (19228 bytes)
+  Last modified:         2026-06-24 18:51:33.664708663 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 16257569
   Hard links:            1
-  MIME type:             text/x-c
-  SHA-256:               2b59a51ecd724cecf08b9ef56c22698a528d9de5b60940bc86e80250b240bba3
-  Last git commit:       d9a1b28 2026-06-21 00:12:13 -0400 add claude changes
+  MIME type:             text/plain
+  SHA-256:               c5539becdfdb8ae1892478a5c5298b8fd4d54603520350f22c4dc5065e7f6f5f
+  Last git commit:       84e5861 2026-06-24 18:57:44 -0400 add all changes
 
 --- CONTENT ---
 package com.kusl.myweather.data
@@ -2679,11 +3295,16 @@ import com.kusl.myweather.data.local.entity.PointMetadataEntity
 import com.kusl.myweather.data.mapper.NwsMappers
 import com.kusl.myweather.data.remote.NwsApi
 import com.kusl.myweather.data.remote.WeatherJson
+import com.kusl.myweather.data.remote.dto.PointPropertiesDto
 import com.kusl.myweather.domain.AreaWeatherResult
 import com.kusl.myweather.domain.WeatherRepository
 import com.kusl.myweather.domain.model.AreaWeather
+import com.kusl.myweather.domain.model.CurrentObservation
 import com.kusl.myweather.domain.model.Forecast
+import com.kusl.myweather.domain.model.ForecastPeriod
+import com.kusl.myweather.domain.model.LocationSources
 import com.kusl.myweather.domain.model.PointMetadata
+import com.kusl.myweather.domain.model.WeatherAlert
 import com.kusl.myweather.domain.model.WeatherTile
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -2699,6 +3320,18 @@ import retrofit2.Response
  *  - short-TTL grid forecasts honouring NWS `Cache-Control` (clamped),
  *  - conditional GETs (`If-None-Match` -> `304`) to refresh expiry cheaply, and
  *  - serving a stale-but-valid cached copy when NWS is unreachable (offline-first).
+ *
+ * Beyond the core forecast it also gathers the *supplementary* information for
+ * the **primary** location — active alerts, the hourly forecast, the latest
+ * observation, and the set of official source endpoints — so the dashboard can
+ * surface as much as NWS offers. Those fetches are strictly best-effort: each is
+ * wrapped so a failure leaves the headline forecast untouched. They run only for
+ * the coordinate path, not the lightweight grid-recenter peek.
+ *
+ * Transport-level de-duplication, negative caching, and stale-on-error for
+ * *every* call (including the supplementary ones) are handled one layer down by
+ * `HttpCacheInterceptor`; this class keeps the higher-level, domain-aware Room
+ * cache for metadata and forecasts.
  *
  * Ported from the .NET dashboard's `WeatherService`.
  */
@@ -2723,6 +3356,9 @@ class WeatherRepositoryImpl(
                 metadata = meta.metadata,
                 query = coord,
                 metaStale = meta.stale,
+                fetchSupplementary = true,
+                queryPoint = coord,
+                extras = meta.extras,
             )
         }
     }
@@ -2747,13 +3383,17 @@ class WeatherRepositoryImpl(
             timeZone = timeZone,
         )
         // No metadata staleness applies here; freshness is governed entirely by
-        // the per-cell forecast cache.
+        // the per-cell forecast cache. This is an ephemeral peek at a neighbouring
+        // cell, so we skip the supplementary (alerts/hourly/observation) fetches.
         return buildArea(
             center = center,
             radius = radius,
             metadata = metadata,
             query = metadata.query,
             metaStale = false,
+            fetchSupplementary = false,
+            queryPoint = null,
+            extras = null,
         )
     }
 
@@ -2762,6 +3402,10 @@ class WeatherRepositoryImpl(
      * (cache-aside, bounded concurrency) and assemble them into an [AreaWeather].
      * Shared by the coordinate path ([getAreaWeather]) and the grid-recenter path
      * ([getAreaWeatherForGrid]).
+     *
+     * When [fetchSupplementary] is true the primary location is enriched with
+     * alerts (for [queryPoint]), the hourly forecast, the latest observation, and
+     * the source endpoints (from [extras]); all best-effort.
      */
     private suspend fun buildArea(
         center: GridPoint,
@@ -2769,6 +3413,9 @@ class WeatherRepositoryImpl(
         metadata: PointMetadata,
         query: GeoPoint,
         metaStale: Boolean,
+        fetchSupplementary: Boolean,
+        queryPoint: GeoPoint?,
+        extras: PointPropertiesDto?,
     ): AreaWeatherResult {
         val primary = when (val p = fetchForecast(center)) {
             is ForecastResult.Ok -> p
@@ -2803,6 +3450,13 @@ class WeatherRepositoryImpl(
             distanceMeters = 0.0,
         )
 
+        // The "as much information as we can get" extras, for the primary location only.
+        val supplementary = if (fetchSupplementary) {
+            gatherSupplementary(center, queryPoint, extras)
+        } else {
+            SupplementaryData()
+        }
+
         // Bound DB growth without discarding our offline fallback: only drop
         // entries that expired more than a week ago.
         runCatching { forecastDao.deleteExpiredBefore(time.nowMs() - STALE_RETENTION_MS) }
@@ -2810,7 +3464,9 @@ class WeatherRepositoryImpl(
         val fromCache = metaStale || primary.stale
         Telemetry.i(
             "WeatherRepository",
-            "assembled $center tiles=${neighborTiles.size + 1} cache=$fromCache",
+            "assembled $center tiles=${neighborTiles.size + 1} cache=$fromCache " +
+                "alerts=${supplementary.alerts.size} hourly=${supplementary.hourly.size} " +
+                "obs=${supplementary.observation != null}",
         )
         return AreaWeatherResult.Success(
             AreaWeather(
@@ -2819,14 +3475,100 @@ class WeatherRepositoryImpl(
                 primary = primary.forecast,
                 tiles = listOf(primaryTile) + neighborTiles,
                 fromCache = fromCache,
+                alerts = supplementary.alerts,
+                hourly = supplementary.hourly,
+                observation = supplementary.observation,
+                sources = supplementary.sources,
             ),
         )
     }
 
+    // ── supplementary data (best-effort; never blocks the core forecast) ───────
+
+    private class SupplementaryData(
+        val alerts: List<WeatherAlert> = emptyList(),
+        val hourly: List<ForecastPeriod> = emptyList(),
+        val observation: CurrentObservation? = null,
+        val sources: LocationSources? = null,
+    )
+
+    /**
+     * Gather alerts, the hourly forecast, the latest observation, and the source
+     * endpoints concurrently. Every call is wrapped in `runCatching`, so any
+     * failure degrades to an empty/null field rather than failing the load. All
+     * of these requests still ride the transport cache, so repeated loads of the
+     * same place don't re-hit NWS.
+     */
+    private suspend fun gatherSupplementary(
+        center: GridPoint,
+        queryPoint: GeoPoint?,
+        extras: PointPropertiesDto?,
+    ): SupplementaryData = coroutineScope {
+        val coords = "${center.gridX},${center.gridY}"
+
+        val alertsDeferred = async {
+            val pt = queryPoint ?: return@async emptyList<WeatherAlert>()
+            runCatching {
+                val resp = api.getActiveAlerts(pt.toApiString())
+                if (resp.isSuccessful) NwsMappers.toAlerts(resp.body()) else emptyList()
+            }.getOrDefault(emptyList())
+        }
+
+        val hourlyDeferred = async {
+            runCatching {
+                val resp = api.getForecastHourly(center.gridId, coords)
+                if (resp.isSuccessful) {
+                    NwsMappers.toForecast(center, resp.body())?.periods?.take(HOURLY_LIMIT).orEmpty()
+                } else {
+                    emptyList()
+                }
+            }.getOrDefault(emptyList())
+        }
+
+        val observationDeferred = async {
+            runCatching {
+                val stationsResp = api.getObservationStations(center.gridId, coords)
+                val stationId =
+                    if (stationsResp.isSuccessful) NwsMappers.firstStationId(stationsResp.body()) else null
+                if (stationId == null) {
+                    null
+                } else {
+                    val obsResp = api.getLatestObservation(stationId)
+                    if (obsResp.isSuccessful) NwsMappers.toObservation(obsResp.body(), stationId) else null
+                }
+            }.getOrNull()
+        }
+
+        SupplementaryData(
+            alerts = alertsDeferred.await(),
+            hourly = hourlyDeferred.await(),
+            observation = observationDeferred.await(),
+            sources = extras?.let(::toSources),
+        )
+    }
+
+    private fun toSources(p: PointPropertiesDto) = LocationSources(
+        forecastOffice = p.forecastOffice,
+        radarStation = p.radarStation,
+        forecastZone = p.forecastZone,
+        county = p.county,
+        fireWeatherZone = p.fireWeatherZone,
+        forecastUrl = p.forecast,
+        hourlyForecastUrl = p.forecastHourly,
+        gridDataUrl = p.forecastGridData,
+        observationStationsUrl = p.observationStations,
+    )
+
     // ── metadata (long-lived) ─────────────────────────────────────────────────
 
     private sealed interface MetaResult {
-        data class Ok(val metadata: PointMetadata, val stale: Boolean) : MetaResult
+        data class Ok(
+            val metadata: PointMetadata,
+            val stale: Boolean,
+            /** Raw point properties, present only on a fresh resolution (for source endpoints). */
+            val extras: PointPropertiesDto? = null,
+        ) : MetaResult
+
         data object NoCoverage : MetaResult
         data object Unavailable : MetaResult
     }
@@ -2850,11 +3592,12 @@ class WeatherRepositoryImpl(
             return cached?.let { MetaResult.Ok(it.toDomain(), stale = true) } ?: MetaResult.Unavailable
         }
 
-        val mapped = NwsMappers.toPointMetadata(coord, response.body())
+        val body = response.body()
+        val mapped = NwsMappers.toPointMetadata(coord, body)
             ?: return cached?.let { MetaResult.Ok(it.toDomain(), stale = true) } ?: MetaResult.NoCoverage
 
         pointDao.upsert(mapped.toEntity(key, retrievedAt = now, expiresAt = now + METADATA_TTL_MS))
-        return MetaResult.Ok(mapped, stale = false)
+        return MetaResult.Ok(mapped, stale = false, extras = body?.properties)
     }
 
     // ── forecast (short-lived, conditional) ────────────────────────────────────
@@ -2936,6 +3679,9 @@ class WeatherRepositoryImpl(
         private const val NOMINAL_CELL_METERS = 2_500.0
         private const val NEIGHBOR_CONCURRENCY = 4
 
+        /** Cap on hourly periods surfaced (the API returns ~156; the next day is plenty). */
+        private const val HOURLY_LIMIT = 24
+
         val METADATA_TTL_MS = 30L * 24 * 60 * 60 * 1000        // 30 days
         val DEFAULT_FORECAST_TTL_MS = 30L * 60 * 1000          // 30 minutes
         val MAX_FORECAST_TTL_MS = 6L * 60 * 60 * 1000          // 6 hours
@@ -2995,15 +3741,15 @@ private fun Response<*>.etag(): String? = headers()["ETag"]
   File name:             AppContainer.kt
   Relative path:         app/src/main/java/com/kusl/myweather/di/AppContainer.kt
   Absolute path:         /home/kushal/src/kotlin/myweather/app/src/main/java/com/kusl/myweather/di/AppContainer.kt
-  Size:                  3.2 KiB (3290 bytes)
-  Last modified:         2026-06-21 04:40:47.731644190 -0400
+  Size:                  3.3 KiB (3437 bytes)
+  Last modified:         2026-06-24 18:54:18.193896799 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 16257579
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               c909de772a18545a57e1433a13139a5c71ce3da2a9bc3c1e4ead340a4c3104f3
-  Last git commit:       afdcd8b 2026-06-21 04:43:34 -0400 add response by claude
+  SHA-256:               041ac944c380fa535599ce86ca7ab06e31e783b5926c692dc9a384ca6b07f236
+  Last git commit:       84e5861 2026-06-24 18:57:44 -0400 add all changes
 
 --- CONTENT ---
 package com.kusl.myweather.di
@@ -3052,7 +3798,10 @@ class AppContainer(context: Context) {
     val locationProvider = LocationProvider(appContext)
 
     private val userAgentProvider = UserAgentProvider()
-    private val okHttpClient = NetworkModule.okHttpClient(userAgentProvider)
+
+    // The DB is built first, so the universal HTTP cache (Room-backed) is wired
+    // straight into the OkHttp client.
+    private val okHttpClient = NetworkModule.okHttpClient(userAgentProvider, database.httpCacheDao())
     private val nwsApi: NwsApi = NetworkModule.nwsApi(okHttpClient)
 
     val weatherRepository: WeatherRepository = WeatherRepositoryImpl(
@@ -3090,15 +3839,15 @@ class AppContainer(context: Context) {
   File name:             Forecast.kt
   Relative path:         app/src/main/java/com/kusl/myweather/domain/model/Forecast.kt
   Absolute path:         /home/kushal/src/kotlin/myweather/app/src/main/java/com/kusl/myweather/domain/model/Forecast.kt
-  Size:                  2.4 KiB (2499 bytes)
-  Last modified:         2026-06-19 16:50:52.000000000 -0400
+  Size:                  6.8 KiB (7035 bytes)
+  Last modified:         2026-06-24 18:51:41.504558069 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 16257583
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               d55e208bfc9d9cf1f2cfc83aea2fb4723f489908de0a7fb71dba5af60ce04cc8
-  Last git commit:       0386d8e 2026-06-20 08:06:03 -0400 move one folder up
+  SHA-256:               b1b755627e58a1f3408a3c1387f565d372baed2adbcbd392bc116506aaff79ed
+  Last git commit:       84e5861 2026-06-24 18:57:44 -0400 add all changes
 
 --- CONTENT ---
 package com.kusl.myweather.domain.model
@@ -3166,6 +3915,107 @@ data class PointMetadata(
         }
 }
 
+/**
+ * A single active NWS watch/warning/advisory (Common Alerting Protocol).
+ *
+ * This is life-and-safety information, so the human-authored text fields
+ * ([headline], [description], [instruction]) are carried through **verbatim** —
+ * never summarised or reformatted — and surfaced prominently in the UI. The
+ * coded fields ([severity], [urgency], [certainty]) keep the raw NWS strings so
+ * nothing is lost in translation.
+ *
+ * Field reference: https://www.weather.gov/documentation/services-web-api
+ */
+@Serializable
+data class WeatherAlert(
+    /** Stable identifier (NWS `id`), used for de-duplication and list keys. */
+    val id: String,
+    /** e.g. "Tornado Warning", "Winter Storm Warning". */
+    val event: String,
+    /** Raw NWS value: Extreme | Severe | Moderate | Minor | Unknown. */
+    val severity: String,
+    /** Raw NWS value: Immediate | Expected | Future | Past | Unknown. */
+    val urgency: String,
+    /** Raw NWS value: Observed | Likely | Possible | Unlikely | Unknown. */
+    val certainty: String,
+    /** One-line headline (often includes timing). */
+    val headline: String?,
+    /** The full "what/where/when/impacts" narrative — shown verbatim. */
+    val description: String,
+    /** Protective-action guidance — shown verbatim. May be absent for ended alerts. */
+    val instruction: String?,
+    /** Human-readable affected area, e.g. "Norfolk, VA; Virginia Beach, VA". */
+    val areaDesc: String?,
+    /** ISO-8601 timestamps straight from NWS (rendered as-is by the UI). */
+    val onset: String?,
+    val expires: String?,
+    val ends: String?,
+    /** Issuing office, e.g. "NWS Wakefield VA". */
+    val senderName: String?,
+) {
+    companion object {
+        /**
+         * Lower = more urgent, for sorting/colouring. Unknown severity sorts
+         * after the named levels so a concrete "Severe" always wins the top slot.
+         */
+        fun severityRank(severity: String): Int = when (severity.trim().lowercase()) {
+            "extreme" -> 0
+            "severe" -> 1
+            "moderate" -> 2
+            "minor" -> 3
+            else -> 4 // "unknown" / unrecognised
+        }
+    }
+}
+
+/**
+ * The latest surface observation for the station nearest a location — the real,
+ * *measured* conditions right now, as opposed to the forecast. Values are
+ * normalised to the app's US-customary display units in the mapper (NWS reports
+ * observations in SI: °C, km/h, Pa, metres).
+ */
+@Serializable
+data class CurrentObservation(
+    /** ISO-8601 observation time from NWS. */
+    val timestamp: String?,
+    /** Plain-language summary, e.g. "Mostly Cloudy". */
+    val textDescription: String?,
+    val temperatureF: Double?,
+    val dewpointF: Double?,
+    val relativeHumidityPct: Int?,
+    val windSpeedMph: Double?,
+    val windDirectionDeg: Int?,
+    val windGustMph: Double?,
+    val pressureInHg: Double?,
+    val visibilityMiles: Double?,
+    /** The reporting station, e.g. "KAKQ". */
+    val stationId: String?,
+) {
+    /** True when every measured value is missing (so the UI can skip the card). */
+    val isEmpty: Boolean
+        get() = textDescription == null && temperatureF == null && dewpointF == null &&
+            relativeHumidityPct == null && windSpeedMph == null && windGustMph == null &&
+            pressureInHg == null && visibilityMiles == null
+}
+
+/**
+ * The set of NWS endpoints and zone identifiers available for a location,
+ * discovered from the `/points` response. Surfaced (read-only) so a curious user
+ * can see exactly which official sources back the data they're looking at — and
+ * follow them. Only populated on a fresh (online) `/points` resolution.
+ */
+data class LocationSources(
+    val forecastOffice: String?,
+    val radarStation: String?,
+    val forecastZone: String?,
+    val county: String?,
+    val fireWeatherZone: String?,
+    val forecastUrl: String?,
+    val hourlyForecastUrl: String?,
+    val gridDataUrl: String?,
+    val observationStationsUrl: String?,
+)
+
 /** One tile in the rendered matrix: a cell plus how far it is from the user. */
 data class WeatherTile(
     val grid: GridPoint,
@@ -3178,6 +4028,12 @@ data class WeatherTile(
  * Everything the dashboard needs for one location: the resolved metadata, the
  * user's own cell, and the surrounding tile matrix. [fromCache] flags that this
  * was served from the local cache because the network was unavailable.
+ *
+ * The supplementary fields ([alerts], [hourly], [observation], [sources]) are
+ * the "as much information as we can get" extras for the *primary* location.
+ * They default to empty so the grid-recenter path (which has no coordinate, and
+ * is an ephemeral peek at a neighbouring cell) can omit them, and so older call
+ * sites and tests keep compiling.
  */
 data class AreaWeather(
     val query: GeoPoint,
@@ -3185,6 +4041,10 @@ data class AreaWeather(
     val primary: Forecast,
     val tiles: List<WeatherTile>,
     val fromCache: Boolean,
+    val alerts: List<WeatherAlert> = emptyList(),
+    val hourly: List<ForecastPeriod> = emptyList(),
+    val observation: CurrentObservation? = null,
+    val sources: LocationSources? = null,
 )
 
 
@@ -3391,15 +4251,15 @@ class MyWeatherApp : Application() {
   File name:             AppIcons.kt
   Relative path:         app/src/main/java/com/kusl/myweather/ui/AppIcons.kt
   Absolute path:         /home/kushal/src/kotlin/myweather/app/src/main/java/com/kusl/myweather/ui/AppIcons.kt
-  Size:                  2.7 KiB (2810 bytes)
-  Last modified:         2026-06-21 04:41:18.051349901 -0400
+  Size:                  3.2 KiB (3323 bytes)
+  Last modified:         2026-06-24 18:56:22.306650597 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 16257531
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               75019ba597903b27d93f81918c6c38148250cc56a2e683b35b1077b39ae70ce0
-  Last git commit:       afdcd8b 2026-06-21 04:43:34 -0400 add response by claude
+  SHA-256:               ebbfa4e6f90e112eeac51c5e96e51d9638fb7976e2e1b507c5d0b514256d5141
+  Last git commit:       84e5861 2026-06-24 18:57:44 -0400 add all changes
 
 --- CONTENT ---
 package com.kusl.myweather.ui
@@ -3468,6 +4328,18 @@ object AppIcons {
             "M16,1H4C2.9,1 2,1.9 2,3v14h2V3h12V1zM19,5H8C6.9,5 6,5.9 6,7v14c0,1.1 0.9,2 2,2h11c1.1,0 2,-0.9 2,-2V7c0,-1.1 -0.9,-2 -2,-2zM19,21H8V7h11v14z",
         )
     }
+    val ExpandMore: ImageVector by lazy {
+        icon("ExpandMore", "M16.59,8.59L12,13.17 7.41,8.59 6,10l6,6 6,-6z")
+    }
+    val ExpandLess: ImageVector by lazy {
+        icon("ExpandLess", "M12,8l-6,6 1.41,1.41L12,10.83l4.59,4.58L18,14z")
+    }
+    val Info: ImageVector by lazy {
+        icon(
+            "Info",
+            "M11,7h2v2h-2zM11,11h2v6h-2zM12,2C6.48,2 2,6.48 2,12s4.48,10 10,10 10,-4.48 10,-10S17.52,2 12,2zM12,20c-4.41,0 -8,-3.59 -8,-8s3.59,-8 8,-8 8,3.59 8,8 -3.59,8 -8,8z",
+        )
+    }
 }
 
 
@@ -3479,19 +4351,20 @@ object AppIcons {
   File name:             ForecastCard.kt
   Relative path:         app/src/main/java/com/kusl/myweather/ui/components/ForecastCard.kt
   Absolute path:         /home/kushal/src/kotlin/myweather/app/src/main/java/com/kusl/myweather/ui/components/ForecastCard.kt
-  Size:                  5.2 KiB (5385 bytes)
-  Last modified:         2026-06-19 17:00:20.000000000 -0400
+  Size:                  5.5 KiB (5721 bytes)
+  Last modified:         2026-06-24 18:56:13.218668622 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 16257534
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               f0d55c00bd5387976bc8dd173a99852560967cc7f7394fef83e2f806799f02cd
-  Last git commit:       0386d8e 2026-06-20 08:06:03 -0400 move one folder up
+  SHA-256:               7594fb72fa1c7c80cf7c515746da4fa9ddde503eaf0c9c3a1f848cb9f61330f9
+  Last git commit:       84e5861 2026-06-24 18:57:44 -0400 add all changes
 
 --- CONTENT ---
 package com.kusl.myweather.ui.components
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -3514,16 +4387,20 @@ import com.kusl.myweather.domain.model.Forecast
 import com.kusl.myweather.domain.model.ForecastPeriod
 import com.kusl.myweather.domain.model.PointMetadata
 
-/** Headline "current conditions" card for the user's own cell. */
+/** Headline "current conditions" card for the user's own cell. Tapping it opens
+ * the full detail for the current period. */
 @Composable
 fun ForecastCard(
     metadata: PointMetadata,
     forecast: Forecast,
+    onPeriodSelected: (ForecastPeriod) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val current = forecast.current
     Card(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable(enabled = current != null) { current?.let(onPeriodSelected) },
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
     ) {
         Column(Modifier.padding(20.dp)) {
@@ -3580,10 +4457,11 @@ fun ForecastCard(
     }
 }
 
-/** A horizontally-scrolling strip of the upcoming forecast periods. */
+/** A horizontally-scrolling strip of the upcoming forecast periods; tap one for detail. */
 @Composable
 fun UpcomingPeriods(
     periods: List<ForecastPeriod>,
+    onPeriodSelected: (ForecastPeriod) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     if (periods.isEmpty()) return
@@ -3595,7 +4473,11 @@ fun UpcomingPeriods(
         )
         LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             items(periods, key = { it.number }) { period ->
-                OutlinedCard(modifier = Modifier.width(140.dp)) {
+                OutlinedCard(
+                    modifier = Modifier
+                        .width(140.dp)
+                        .clickable { onPeriodSelected(period) },
+                ) {
                     Column(Modifier.padding(12.dp)) {
                         Text(period.name, style = MaterialTheme.typography.labelLarge, maxLines = 1)
                         Text(
@@ -3603,11 +4485,7 @@ fun UpcomingPeriods(
                             style = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.SemiBold,
                         )
-                        Text(
-                            period.shortForecast,
-                            style = MaterialTheme.typography.bodySmall,
-                            maxLines = 3,
-                        )
+                        Text(period.shortForecast, style = MaterialTheme.typography.bodySmall, maxLines = 3)
                         period.probabilityOfPrecipitation?.let {
                             Text("Precip $it%", style = MaterialTheme.typography.labelSmall)
                         }
@@ -3800,15 +4678,15 @@ private fun TileCell(
   File name:             DashboardScreen.kt
   Relative path:         app/src/main/java/com/kusl/myweather/ui/dashboard/DashboardScreen.kt
   Absolute path:         /home/kushal/src/kotlin/myweather/app/src/main/java/com/kusl/myweather/ui/dashboard/DashboardScreen.kt
-  Size:                  9.0 KiB (9232 bytes)
-  Last modified:         2026-06-21 00:08:47.962984141 -0400
+  Size:                  10.9 KiB (11199 bytes)
+  Last modified:         2026-06-24 18:54:33.961865512 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 16257549
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               e2d569faf3e2e761285d067a743a3cd1b5e0494cdf5ea838b19293be1ae08537
-  Last git commit:       d9a1b28 2026-06-21 00:12:13 -0400 add claude changes
+  SHA-256:               1461af919369722170f288908208270b760d464a0e3d2b119688bfe819bf8410
+  Last git commit:       84e5861 2026-06-24 18:57:44 -0400 add all changes
 
 --- CONTENT ---
 package com.kusl.myweather.ui.dashboard
@@ -3850,8 +4728,14 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kusl.myweather.R
+import com.kusl.myweather.domain.model.ForecastPeriod
 import com.kusl.myweather.ui.AppIcons
+import com.kusl.myweather.ui.components.AlertsBanner
 import com.kusl.myweather.ui.components.ForecastCard
+import com.kusl.myweather.ui.components.HourlyStrip
+import com.kusl.myweather.ui.components.LocationSourcesCard
+import com.kusl.myweather.ui.components.ObservationCard
+import com.kusl.myweather.ui.components.PeriodDetailSheet
 import com.kusl.myweather.ui.components.TileGrid
 import com.kusl.myweather.ui.components.UpcomingPeriods
 import kotlinx.coroutines.flow.collect
@@ -3865,6 +4749,9 @@ fun DashboardScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var manualText by rememberSaveable { mutableStateOf("") }
+    // Which period (if any) is showing its detail sheet. Transient by design:
+    // it's an ephemeral overlay, so we don't preserve it across config changes.
+    var selectedPeriod by remember { mutableStateOf<ForecastPeriod?>(null) }
     val context = LocalContext.current
 
     // When navigated here with explicit coords (e.g. from a saved location), load them.
@@ -3904,6 +4791,11 @@ fun DashboardScreen(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
+            // Life-and-safety first: any active watches/warnings sit above everything.
+            state.area?.alerts?.takeIf { it.isNotEmpty() }?.let { alerts ->
+                item(key = "alerts") { AlertsBanner(alerts) }
+            }
+
             item {
                 Button(
                     onClick = {
@@ -3973,14 +4865,39 @@ fun DashboardScreen(
 
             val area = state.area
             if (area != null) {
-                item { ForecastCard(metadata = area.metadata, forecast = area.primary) }
+                item {
+                    ForecastCard(
+                        metadata = area.metadata,
+                        forecast = area.primary,
+                        onPeriodSelected = { selectedPeriod = it },
+                    )
+                }
+                area.observation?.let { obs ->
+                    item { ObservationCard(observation = obs) }
+                }
                 item {
                     TileGrid(
                         tiles = area.tiles,
                         onTileSelected = { viewModel.recenterOnGrid(it.grid) },
                     )
                 }
-                item { UpcomingPeriods(periods = area.primary.periods) }
+                item {
+                    UpcomingPeriods(
+                        periods = area.primary.periods,
+                        onPeriodSelected = { selectedPeriod = it },
+                    )
+                }
+                if (area.hourly.isNotEmpty()) {
+                    item {
+                        HourlyStrip(
+                            periods = area.hourly,
+                            onPeriodSelected = { selectedPeriod = it },
+                        )
+                    }
+                }
+                area.sources?.let { sources ->
+                    item { LocationSourcesCard(sources = sources) }
+                }
             } else if (!state.isLoading &&
                 state.message == null &&
                 state.locationStatus != LocationStatus.Requesting
@@ -3995,6 +4912,12 @@ fun DashboardScreen(
             }
 
             item { Column(Modifier.padding(bottom = 8.dp)) {} }
+        }
+
+        // Detail overlay for a tapped forecast period. Rendered outside the list
+        // so it floats above the whole screen.
+        selectedPeriod?.let { period ->
+            PeriodDetailSheet(period = period, onDismiss = { selectedPeriod = null })
         }
     }
 }
@@ -6030,15 +6953,15 @@ class UserAgentInterceptorTest {
   File name:             WeatherRepositoryTest.kt
   Relative path:         app/src/test/java/com/kusl/myweather/data/WeatherRepositoryTest.kt
   Absolute path:         /home/kushal/src/kotlin/myweather/app/src/test/java/com/kusl/myweather/data/WeatherRepositoryTest.kt
-  Size:                  12.3 KiB (12596 bytes)
-  Last modified:         2026-06-21 00:11:28.119736021 -0400
+  Size:                  16.3 KiB (16785 bytes)
+  Last modified:         2026-06-24 18:56:35.595228909 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 16257512
   Hard links:            1
   MIME type:             text/x-c++
-  SHA-256:               7c7a40489e0c23e4aad46be67b54994ef7d84b8559358f9de6dad0a534648334
-  Last git commit:       d9a1b28 2026-06-21 00:12:13 -0400 add claude changes
+  SHA-256:               32363a15a4d22075a3630f23bc70f06493ff8a6235b25ff5107d099d57d1f7c0
+  Last git commit:       84e5861 2026-06-24 18:57:44 -0400 add all changes
 
 --- CONTENT ---
 package com.kusl.myweather.data
@@ -6052,14 +6975,19 @@ import com.kusl.myweather.data.local.entity.ForecastCacheEntity
 import com.kusl.myweather.data.local.entity.PointMetadataEntity
 import com.kusl.myweather.data.remote.NwsApi
 import com.kusl.myweather.data.remote.WeatherJson
+import com.kusl.myweather.data.remote.dto.AlertFeatureDto
+import com.kusl.myweather.data.remote.dto.AlertPropertiesDto
+import com.kusl.myweather.data.remote.dto.AlertsResponseDto
 import com.kusl.myweather.data.remote.dto.ForecastPropertiesDto
 import com.kusl.myweather.data.remote.dto.ForecastResponseDto
+import com.kusl.myweather.data.remote.dto.ObservationResponseDto
 import com.kusl.myweather.data.remote.dto.PeriodDto
 import com.kusl.myweather.data.remote.dto.PointPropertiesDto
 import com.kusl.myweather.data.remote.dto.PointResponseDto
 import com.kusl.myweather.data.remote.dto.QuantitativeValueDto
 import com.kusl.myweather.data.remote.dto.RelativeLocationDto
 import com.kusl.myweather.data.remote.dto.RelativeLocationPropertiesDto
+import com.kusl.myweather.data.remote.dto.StationsResponseDto
 import com.kusl.myweather.domain.AreaWeatherResult
 import com.kusl.myweather.domain.model.Forecast
 import com.kusl.myweather.domain.model.ForecastPeriod
@@ -6129,6 +7057,9 @@ class WeatherRepositoryTest {
 
         assertTrue(result is AreaWeatherResult.Success)
         assertFalse((result as AreaWeatherResult.Success).area.fromCache)
+        // The forecast/grid path is fully served from cache. (Supplementary
+        // endpoints — alerts/hourly/observation — are best-effort extras that
+        // never gate this result, so they aren't asserted here.)
         assertEquals(0, api.pointCallCount)
         assertTrue(api.forecastCalls.isEmpty())
     }
@@ -6223,6 +7154,61 @@ class WeatherRepositoryTest {
         assertFalse(area.fromCache)
     }
 
+    @Test
+    fun `active alerts are fetched and propagated for the primary location`() = runTest {
+        api.alertsResponder = {
+            Response.success(
+                AlertsResponseDto(
+                    features = listOf(
+                        AlertFeatureDto(
+                            id = "urn:oid:tornado-1",
+                            properties = AlertPropertiesDto(
+                                id = "urn:oid:tornado-1",
+                                event = "Tornado Warning",
+                                severity = "Extreme",
+                                urgency = "Immediate",
+                                certainty = "Observed",
+                                headline = "Tornado Warning issued for Norfolk",
+                                description = "A tornado was spotted near Norfolk.",
+                                instruction = "Take shelter now.",
+                                areaDesc = "Norfolk, VA",
+                                expires = "2026-06-19T13:00:00-04:00",
+                                senderName = "NWS Wakefield VA",
+                            ),
+                        ),
+                    ),
+                ),
+            )
+        }
+
+        val result = repo.getAreaWeather(query, radius = 1)
+
+        assertTrue(result is AreaWeatherResult.Success)
+        val area = (result as AreaWeatherResult.Success).area
+        assertEquals(1, area.alerts.size)
+        val alert = area.alerts.first()
+        assertEquals("Tornado Warning", alert.event)
+        assertEquals("A tornado was spotted near Norfolk.", alert.description) // carried verbatim
+        assertEquals("Take shelter now.", alert.instruction)
+        assertEquals(1, api.alertsCallCount)
+    }
+
+    @Test
+    fun `grid recenter does not fetch supplementary alerts`() = runTest {
+        val center = GridPoint("AKQ", 84, 61)
+
+        repo.getAreaWeatherForGrid(
+            center = center,
+            radius = 1,
+            label = "Selected grid cell",
+            timeZone = "America/New_York",
+        )
+
+        // Recenter is an ephemeral peek at a neighbouring cell, not the user's
+        // own location, so it deliberately skips the supplementary fetches.
+        assertEquals(0, api.alertsCallCount)
+    }
+
     // ── helpers ───────────────────────────────────────────────────────────────
 
     private fun primeFreshMetadata(expiresInMs: Long = 30L * 24 * 60 * 60 * 1000) {
@@ -6294,6 +7280,10 @@ private class FakeNwsApi : NwsApi {
     var pointCallCount = 0
     val forecastCalls = mutableListOf<Triple<String, String, String?>>()
 
+    // Supplementary endpoints are tracked separately so the core points/forecast
+    // assertions above stay unaffected by the "as much info as we can get" extras.
+    var alertsCallCount = 0
+
     var pointResponder: () -> Response<PointResponseDto> = { Response.success(pointDto()) }
     // Default success carries a Cache-Control + a fresh ETag ("v2").
     var forecastResponder: (String, String, String?) -> Response<ForecastResponseDto> = { _, _, _ ->
@@ -6301,6 +7291,11 @@ private class FakeNwsApi : NwsApi {
             forecastDto(75),
             Headers.headersOf("Cache-Control", "max-age=1800", "ETag", "v2"),
         )
+    }
+
+    // No active alerts by default; tests override to inject one.
+    var alertsResponder: (String) -> Response<AlertsResponseDto> = {
+        Response.success(AlertsResponseDto(features = emptyList()))
     }
 
     override suspend fun getPoint(point: String): Response<PointResponseDto> {
@@ -6318,6 +7313,29 @@ private class FakeNwsApi : NwsApi {
         if (throwOnForecast) throw IOException("offline")
         return forecastResponder(office, coords, ifNoneMatch)
     }
+
+    override suspend fun getActiveAlerts(point: String): Response<AlertsResponseDto> {
+        alertsCallCount++
+        return alertsResponder(point)
+    }
+
+    // The remaining supplementary endpoints are inert by default (empty payloads),
+    // so the repository's best-effort extras resolve to "nothing to show" without
+    // touching the counters the core tests assert on.
+    override suspend fun getForecastHourly(
+        office: String,
+        coords: String,
+        ifNoneMatch: String?,
+    ): Response<ForecastResponseDto> = Response.success(ForecastResponseDto(properties = null))
+
+    override suspend fun getObservationStations(
+        office: String,
+        coords: String,
+    ): Response<StationsResponseDto> = Response.success(StationsResponseDto(features = emptyList()))
+
+    override suspend fun getLatestObservation(
+        stationId: String,
+    ): Response<ObservationResponseDto> = Response.success(ObservationResponseDto(properties = null))
 }
 
 private class FakePointMetadataDao : PointMetadataDao {
@@ -6662,6 +7680,266 @@ plugins {
 
 
 ################################################################################
+# FILE: data/remote/HttpCacheInterceptor.kt
+################################################################################
+
+--- METADATA ---
+  File name:             HttpCacheInterceptor.kt
+  Relative path:         data/remote/HttpCacheInterceptor.kt
+  Absolute path:         /home/kushal/src/kotlin/myweather/data/remote/HttpCacheInterceptor.kt
+  Size:                  10.8 KiB (11149 bytes)
+  Last modified:         2026-06-24 18:51:00.880114441 -0400
+  Permissions:           -rw-r--r--
+  Owner:                 kushal:kushal
+  Inode:                 16817228
+  Hard links:            1
+  MIME type:             text/plain
+  SHA-256:               8973d276c0253cb374babf208da7fa0411e907d004c455238dbaabf4b59e7e9a
+  Last git commit:       84e5861 2026-06-24 18:57:44 -0400 add all changes
+
+--- CONTENT ---
+package com.kusl.myweather.data.remote
+
+import com.kusl.myweather.core.SystemTimeSource
+import com.kusl.myweather.core.Telemetry
+import com.kusl.myweather.core.TimeSource
+import com.kusl.myweather.data.local.dao.HttpCacheDao
+import com.kusl.myweather.data.local.entity.HttpCacheEntity
+import okhttp3.Interceptor
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.Protocol
+import okhttp3.Response
+import okhttp3.ResponseBody.Companion.toResponseBody
+import java.io.IOException
+import java.util.concurrent.atomic.AtomicInteger
+
+/**
+ * A universal, Room-backed HTTP cache implemented as an OkHttp **application**
+ * interceptor. It sits in front of every NWS call (current and future) and is
+ * the project's single transport-level request shield.
+ *
+ * Why an interceptor (and not just the repository's own Room cache)? Because it
+ * keys on the *fully-resolved* `"$method $url"`, it transparently:
+ *  - **De-duplicates by endpoint.** Two lookups whose coordinates round to the
+ *    same NWS grid/point produce the identical URL, so the second is served
+ *    from cache with no socket opened. (`GeoPoint` already rounds to 4 dp, ~11 m;
+ *    this closes the gap for *every* endpoint, including ones the repository
+ *    doesn't model.)
+ *  - **Negative-caches.** NWS returns cacheable `404`s (e.g. "Marine Forecast
+ *    Not Supported"); we remember those too, so we don't keep asking.
+ *  - **Serves stale-on-error.** If the network is down we return the last body
+ *    we stored, so new endpoints get offline behaviour for free.
+ *  - **Revalidates conditionally.** When we hold an `ETag` we attach
+ *    `If-None-Match`; a `304` just renews the TTL.
+ *
+ * ### Deliberate divergence from strict HTTP caching
+ * The goal is to make **as few NWS requests as possible**, so this cache is more
+ * aggressive than RFC 9111: it stores responses even when `Cache-Control` says
+ * `no-store`/`no-cache`, and it caches error statuses. NWS data is public and
+ * re-fetchable, the freshness windows below are short, and a user-driven Refresh
+ * always re-validates, so the trade is safe and intentional.
+ *
+ * ### Threading
+ * Runs on OkHttp's background dispatcher (Retrofit `suspend` calls are
+ * enqueued), so the **blocking** [HttpCacheDao] methods are fine here and must
+ * never be invoked from the main thread. [time] is injected so the policy is
+ * deterministic under test.
+ *
+ * The synthetic responses we build carry an `X-MyWeather-Cache` header
+ * (`HIT` | `REVALIDATED` | `STALE` | `NETWORK`) purely for observability.
+ */
+class HttpCacheInterceptor(
+    private val cacheDao: HttpCacheDao,
+    private val time: TimeSource = SystemTimeSource,
+) : Interceptor {
+
+    private val callsSincePrune = AtomicInteger(0)
+
+    override fun intercept(chain: Interceptor.Chain): Response {
+        val request = chain.request()
+
+        // Only GETs are cacheable here; everything else passes straight through.
+        if (!request.method.equals("GET", ignoreCase = true)) {
+            return chain.proceed(request)
+        }
+
+        maybePrune()
+
+        val key = cacheKey(request.method, request.url.toString())
+        val now = time.nowMs()
+        val cached = runCatching { cacheDao.getByKey(key) }.getOrNull()
+
+        // 1. Fresh hit — no network at all.
+        if (cached != null && now < cached.expiresAtEpochMs) {
+            Telemetry.d("HttpCache", "HIT ${request.url} (code=${cached.statusCode})")
+            return cached.toResponse(request, CACHE_HIT)
+        }
+
+        // 2. Stale or missing. If we have an ETag and the caller didn't bring its
+        //    own conditional header, attach ours so the server can answer 304.
+        val callerHasConditional = request.header("If-None-Match") != null
+        val outbound = if (cached?.etag != null && !callerHasConditional) {
+            request.newBuilder().header("If-None-Match", cached.etag).build()
+        } else {
+            request
+        }
+
+        val networkResponse = try {
+            chain.proceed(outbound)
+        } catch (io: IOException) {
+            // 3. Offline: serve the last copy we have, however old.
+            if (cached != null) {
+                Telemetry.w("HttpCache", "offline; serving STALE ${request.url}")
+                return cached.toResponse(request, CACHE_STALE)
+            }
+            throw io
+        }
+
+        // 4. Not Modified: renew the entry's lifetime cheaply.
+        if (networkResponse.code == 304 && cached != null) {
+            val renewed = cached.copy(
+                etag = networkResponse.header("ETag") ?: cached.etag,
+                retrievedAtEpochMs = now,
+                expiresAtEpochMs = now + ttlMsFor(networkResponse),
+            )
+            runCatching { cacheDao.upsert(renewed) }
+            return if (callerHasConditional) {
+                // The caller asked for revalidation itself (the repository does
+                // this for forecasts) — let it see the real 304.
+                Telemetry.d("HttpCache", "304 passthrough ${request.url}")
+                networkResponse.newBuilder().header(CACHE_HEADER, CACHE_REVALIDATED).build()
+            } else {
+                // We added the conditional header; the caller expects a body.
+                networkResponse.close()
+                Telemetry.d("HttpCache", "304 -> cached body ${request.url}")
+                renewed.toResponse(request, CACHE_REVALIDATED)
+            }
+        }
+
+        // 5. A real response (2xx, 404, 4xx, 5xx). Read the body once, cache the
+        //    bytes verbatim, and hand a fresh copy back to the caller.
+        val bodyBytes = networkResponse.body.bytes()
+        val contentType = networkResponse.body.contentType()
+
+        if (bodyBytes.size <= MAX_BODY_BYTES) {
+            val entity = HttpCacheEntity(
+                cacheKey = key,
+                url = request.url.toString(),
+                method = request.method,
+                statusCode = networkResponse.code,
+                statusMessage = networkResponse.message,
+                contentType = contentType?.toString(),
+                body = bodyBytes.toString(Charsets.UTF_8),
+                etag = networkResponse.header("ETag"),
+                retrievedAtEpochMs = now,
+                expiresAtEpochMs = now + ttlMsFor(networkResponse),
+            )
+            runCatching { cacheDao.upsert(entity) }
+            Telemetry.d("HttpCache", "NETWORK ${request.url} -> ${networkResponse.code} (cached)")
+        } else {
+            Telemetry.d("HttpCache", "NETWORK ${request.url} -> ${networkResponse.code} (too large; not cached)")
+        }
+
+        return networkResponse.newBuilder()
+            .header(CACHE_HEADER, CACHE_NETWORK)
+            .body(bodyBytes.toResponseBody(contentType))
+            .build()
+    }
+
+    /** Rebuild a stored entry as a real OkHttp [Response] without touching the network. */
+    private fun HttpCacheEntity.toResponse(request: okhttp3.Request, cacheState: String): Response {
+        val mediaType = contentType?.toMediaTypeOrNull()
+        val builder = Response.Builder()
+            .request(request)
+            .protocol(Protocol.HTTP_1_1)
+            .code(statusCode)
+            .message(statusMessage)
+            .body(body.toByteArray(Charsets.UTF_8).toResponseBody(mediaType))
+            .header(CACHE_HEADER, cacheState)
+        contentType?.let { builder.header("Content-Type", it) }
+        etag?.let { builder.header("ETag", it) }
+        return builder.build()
+    }
+
+    /**
+     * Opportunistically drop rows that expired more than [STALE_RETENTION_MS] ago.
+     * Merely-expired rows are kept on purpose — they are the offline fallback.
+     * Runs only every [PRUNE_EVERY] calls to keep the hot path cheap.
+     */
+    private fun maybePrune() {
+        if (callsSincePrune.incrementAndGet() < PRUNE_EVERY) return
+        callsSincePrune.set(0)
+        runCatching { cacheDao.deleteExpiredBefore(time.nowMs() - STALE_RETENTION_MS) }
+    }
+
+    companion object {
+        const val CACHE_HEADER = "X-MyWeather-Cache"
+        const val CACHE_HIT = "HIT"
+        const val CACHE_REVALIDATED = "REVALIDATED"
+        const val CACHE_STALE = "STALE"
+        const val CACHE_NETWORK = "NETWORK"
+
+        /** Don't cache bodies larger than this (NWS payloads are far smaller). */
+        const val MAX_BODY_BYTES = 2 * 1024 * 1024
+
+        private const val PRUNE_EVERY = 50
+        private val STALE_RETENTION_MS = 7L * 24 * 60 * 60 * 1000 // keep stale rows a week
+
+        // Freshness windows. Short by design; Refresh always revalidates.
+        private val POSITIVE_FLOOR_MS = 15L * 1000               // never thrash on tiny max-ages
+        private val POSITIVE_CEIL_MS = 6L * 60 * 60 * 1000       // 6 hours
+        private val DEFAULT_POSITIVE_MS = 30L * 60 * 1000        // 30 minutes
+        private val NEGATIVE_404_TTL_MS = 24L * 60 * 60 * 1000   // a cacheable "no" lasts a day
+        private val TRANSIENT_DEFAULT_MS = 60L * 1000            // 408/429/5xx without Retry-After
+        private val TRANSIENT_MAX_MS = 10L * 60 * 1000           // cap any backoff at 10 min
+        private val CLIENT_ERROR_TTL_MS = 60L * 60 * 1000        // other 4xx: an hour
+
+        private val MAX_AGE_REGEX = Regex("""max-age\s*=\s*(\d+)""", RegexOption.IGNORE_CASE)
+
+        internal fun cacheKey(method: String, url: String): String = "${method.uppercase()} $url"
+
+        /** Parse the integer-seconds form of `Cache-Control: max-age`; null otherwise. */
+        internal fun parseMaxAgeSeconds(cacheControl: String?): Long? =
+            cacheControl?.let { MAX_AGE_REGEX.find(it)?.groupValues?.getOrNull(1)?.toLongOrNull() }
+
+        /** Parse the integer (delta-seconds) form of `Retry-After`; HTTP-date form is ignored. */
+        internal fun parseRetryAfterSeconds(retryAfter: String?): Long? =
+            retryAfter?.trim()?.toLongOrNull()?.takeIf { it >= 0 }
+
+        /** The TTL policy, exposed for unit tests. */
+        internal fun ttlMsForStatus(code: Int, cacheControl: String?, retryAfter: String?): Long = when {
+            code == 304 || code in 200..299 -> {
+                val maxAge = parseMaxAgeSeconds(cacheControl)
+                if (maxAge != null) {
+                    (maxAge * 1000L).coerceIn(POSITIVE_FLOOR_MS, POSITIVE_CEIL_MS)
+                } else {
+                    DEFAULT_POSITIVE_MS
+                }
+            }
+
+            code == 404 || code == 410 -> NEGATIVE_404_TTL_MS
+
+            code == 408 || code == 425 || code == 429 || code in 500..599 -> {
+                val retry = parseRetryAfterSeconds(retryAfter)
+                val ttl = if (retry != null && retry > 0) retry * 1000L else TRANSIENT_DEFAULT_MS
+                ttl.coerceIn(POSITIVE_FLOOR_MS, TRANSIENT_MAX_MS)
+            }
+
+            code in 400..499 -> CLIENT_ERROR_TTL_MS
+
+            else -> CLIENT_ERROR_TTL_MS // 3xx (rarely reaches us; redirects are followed) / anything else
+        }
+    }
+
+    private fun ttlMsFor(response: Response): Long = ttlMsForStatus(
+        code = response.code,
+        cacheControl = response.header("Cache-Control"),
+        retryAfter = response.header("Retry-After"),
+    )
+}
+
+
+################################################################################
 # FILE: docs/ARCHITECTURE.md
 ################################################################################
 
@@ -6669,15 +7947,15 @@ plugins {
   File name:             ARCHITECTURE.md
   Relative path:         docs/ARCHITECTURE.md
   Absolute path:         /home/kushal/src/kotlin/myweather/docs/ARCHITECTURE.md
-  Size:                  3.6 KiB (3691 bytes)
-  Last modified:         2026-06-20 04:58:35.000000000 -0400
+  Size:                  4.7 KiB (4906 bytes)
+  Last modified:         2026-06-24 18:57:33.907936777 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 16257618
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               f4962a6eea47f222621ee61ee118cf31deea9ea3b431c2a09e324d854b964a8c
-  Last git commit:       0386d8e 2026-06-20 08:06:03 -0400 move one folder up
+  SHA-256:               ceff5fa6322816bd16134611eb1ee61d2b9c502fb3e37d50d358cdd36b44a49f
+  Last git commit:       84e5861 2026-06-24 18:57:44 -0400 add all changes
 
 --- CONTENT ---
 # Architecture
@@ -6713,34 +7991,48 @@ No Android dependencies, so it's trivially unit-testable.
 Plain data classes (`Forecast`, `ForecastPeriod`, `PointMetadata`, `WeatherTile`,
 `AreaWeather`, `SavedLocation`) and the `WeatherRepository` interface, whose
 result type `AreaWeatherResult` is `Success | NoCoverage | Unavailable` so the UI
-can react cleanly to every outcome.
+can react cleanly to every outcome. `AreaWeather` also carries the primary
+location's supplementary data: `WeatherAlert`s (active watches/warnings, with the
+human-authored text kept verbatim), an hourly forecast, the latest
+`CurrentObservation` (measured conditions, normalised to US-customary units), and
+`LocationSources` (the official NWS endpoints/zones behind the data).
 
 ### `data` — the real work
 - **`data.remote`** — `NwsApi` returns Retrofit `Response<T>` (not bare bodies)
-  so the repository can read `ETag`/`Cache-Control` and handle `304`. The
-  `UserAgentProvider` holds the current User-Agent in an `AtomicReference`; an
-  OkHttp interceptor reads it per request and also sets
-  `Accept: application/geo+json`.
+  so the repository can read `ETag`/`Cache-Control` and handle `304`. It covers
+  the points and forecast endpoints plus the supplementary ones (`/alerts/active`,
+  `/forecast/hourly`, `/stations`, `/observations/latest`). Two interceptors run
+  on every call: `HttpCacheInterceptor` (outermost — a Room-backed transport
+  cache that de-duplicates by resolved URL, negatively caches `404`s, backs off
+  on `429`/`5xx`, and serves stale-on-error; see [CACHING.md](CACHING.md)), then
+  `NwsHeaderInterceptor`, which reads the current User-Agent from an
+  `AtomicReference` (`UserAgentProvider`) and sets `Accept: application/geo+json`.
 - **`data.local`** — Room stores forecasts as a serialised JSON blob plus the
-  columns that drive freshness (`expiresAtEpochMs`, `etag`).
+  columns that drive freshness (`expiresAtEpochMs`, `etag`), and backs the
+  transport cache via the `http_cache` table (database version 2).
 - **`WeatherRepositoryImpl`** — the cache-aside orchestrator (see
   [CACHING.md](CACHING.md)). It resolves metadata, fetches the primary forecast,
-  and warms the surrounding ring with **bounded concurrency** (a `Semaphore`
-  capped at 4) so a cold area can't stampede NWS.
+  warms the surrounding ring with **bounded concurrency** (a `Semaphore` capped
+  at 4) so a cold area can't stampede NWS, and gathers the primary location's
+  best-effort supplementary data concurrently (each call isolated so it never
+  blocks the core forecast).
 
 ### `di` — manual injection
 `AppContainer` builds the object graph once, owns an application
 `CoroutineScope`, keeps the live User-Agent in sync with the saved setting, and
 exposes a single `ViewModelProvider.Factory` that knows how to build all three
-ViewModels. No DI framework is used — the graph is small, explicit, and keeps the
-dependency footprint minimal.
+ViewModels. The Room database is built first so its `http_cache` DAO can be handed
+to the OkHttp client. No DI framework is used — the graph is small, explicit, and
+keeps the dependency footprint minimal.
 
 ### `ui` — Compose
 A `Scaffold` with a bottom navigation bar hosts a `NavHost` with three
 destinations. Each screen owns its `TopAppBar`. Icons are hand-built
 `ImageVector`s (from SVG path data) to avoid depending on the deprecated
 `material-icons` artifacts. State is exposed as `StateFlow` and collected with
-`collectAsStateWithLifecycle`.
+`collectAsStateWithLifecycle`. On the dashboard, active alerts render in a
+collapsible banner pinned above everything else, and tapping the headline card or
+any forecast period opens a detail sheet.
 
 ## Why these choices
 
@@ -6752,7 +8044,7 @@ destinations. Each screen owns its `TopAppBar`. Icons are hand-built
 - **Single module** — the codebase is small; package structure is enough.
 - **KSP only for Room** — Room's codegen is its most battle-tested path; nothing
   else needs an annotation processor.
-
+  
 
 ################################################################################
 # FILE: docs/CACHING.md
@@ -6762,29 +8054,86 @@ destinations. Each screen owns its `TopAppBar`. Icons are hand-built
   File name:             CACHING.md
   Relative path:         docs/CACHING.md
   Absolute path:         /home/kushal/src/kotlin/myweather/docs/CACHING.md
-  Size:                  3.4 KiB (3498 bytes)
-  Last modified:         2026-06-20 04:59:06.000000000 -0400
+  Size:                  8.1 KiB (8377 bytes)
+  Last modified:         2026-06-24 18:57:22.547215523 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 16257617
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               2cdfed53db9749f1bd718fde248792b0afc53a521c46777d7ae34e8c6670c5a1
-  Last git commit:       0386d8e 2026-06-20 08:06:03 -0400 move one folder up
+  SHA-256:               f288bf4ae14255dad88ccdfcb9f150159b08cd1e38db5337c820ee031977225c
+  Last git commit:       84e5861 2026-06-24 18:57:44 -0400 add all changes
 
 --- CONTENT ---
 # Caching & freshness
 
-All caching lives in `WeatherRepositoryImpl` and is invisible to the rest of the
-app. The goal: be responsive and offline-capable while making as few NWS requests
-as possible. This mirrors the policy of the sibling .NET dashboard.
+MyWeather caches at **two levels**: a transport-level HTTP cache that sits in
+front of *every* NWS request, and the repository's domain cache that knows the
+freshness policy for the specific calls a forecast lookup needs. The goal across
+both: be responsive and offline-capable while making as few NWS requests as
+possible — NWS is a free public service, so we aim to be a model citizen. This
+mirrors the policy of the sibling .NET dashboard.
 
-## Two tiers, two lifetimes
+## Tier 0 — the transport cache (`HttpCacheInterceptor`)
 
-NWS splits a forecast lookup into two calls, and they change at very different
-rates — so they're cached separately.
+`HttpCacheInterceptor` is an OkHttp **application interceptor**, installed
+**outermost** (before the User-Agent interceptor and the debug logger). Because
+it wraps the whole stack, it shields **every** endpoint automatically — not just
+metadata and forecasts, but the supplementary calls too (`/alerts/active`,
+`/forecast/hourly`, `/stations`, `/observations/latest`). It is backed by the
+Room `http_cache` table, one row per request.
 
-### 1. `coordinate → grid` metadata (long-lived)
+- **De-duplication key:** `"$METHOD $url"`, computed *after* Retrofit has built
+  the final URL. Any two calls that resolve to the same endpoint collapse onto a
+  single row. This is what makes near-identical inputs cheap end-to-end: two GPS
+  fixes a fraction of a degree apart round to the same 4-dp coordinate, produce
+  the same `/points` URL, and therefore hit the same cached row instead of
+  re-requesting.
+- **Everything is cached, including errors.** On a fresh hit the cached response
+  is replayed with no network call. On a miss (or once stale) the request goes
+  out; whatever comes back — success *or* error — is stored with a computed
+  expiry:
+  - **2xx / 304:** `Cache-Control: max-age`, clamped to **[15 s, 6 h]**; **30 min**
+    if absent.
+  - **404 / 410 (negative cache):** **24 h** — NWS returns `404` for off-grid
+    cells and out-of-coverage points, and that answer is stable, so we stop
+    asking.
+  - **408 / 425 / 429 / 5xx (transient backoff):** honour `Retry-After` (clamped
+    **[15 s, 10 min]**), else **60 s** — back off politely instead of hammering.
+  - **other 4xx:** **1 h**.
+- **Conditional revalidation.** If a stale row carries an `ETag` and the caller
+  didn't set its own `If-None-Match`, the interceptor adds one. A `304` then
+  renews the TTL and replays the stored body — the cheapest possible refresh. If
+  the caller *did* send `If-None-Match` (the repository's forecast path does),
+  the `304` is passed straight through so that layer's own logic handles it.
+- **Stale-on-error.** If the network throws and a cached row exists, the stale
+  body is served rather than failing.
+- **Guards & housekeeping.** Bodies over **2 MB** are streamed through without
+  caching; rows that expired **more than 7 days ago** are pruned opportunistically
+  (roughly every 50 calls). Each served response carries an `X-MyWeather-Cache`
+  header (`HIT` / `NETWORK` / `STALE` / `REVALIDATED`) for diagnostics.
+
+**Intentional divergence from RFC 9111.** A standards-compliant HTTP cache would
+refuse to store `no-store` responses or `404`s. We deliberately *do* cache them,
+because the overriding goal is to minimise requests to a free public API. This is
+safe here: every payload is public, re-fetchable, and short-lived, so a brief
+negative cache can't cause harm — and a version bump drops the whole cache DB
+anyway (see below).
+
+**Out of scope:** true in-flight coalescing (collapsing genuinely simultaneous
+identical requests into one socket). The stated motivating case — repeated/nearby
+coordinates — is already handled by 4-dp rounding plus this TTL cache, and the
+neighbourhood ring is additionally bounded by a `Semaphore` of 4 (below).
+
+## Tier 1 — the repository's domain cache
+
+NWS splits a forecast lookup into two calls that change at very different rates,
+so `WeatherRepositoryImpl` caches them separately with policy it understands.
+(This sits *above* Tier 0; the transport cache can still short-circuit the actual
+socket traffic, but the repository remains the source of the freshness *policy*
+and the offline-first behaviour the UI sees.)
+
+### `coordinate → grid` metadata (long-lived)
 
 `GET /points/{lat},{lon}` returns the forecast office and grid X/Y for a
 coordinate. This mapping is effectively immutable.
@@ -6795,7 +8144,7 @@ coordinate. This mapping is effectively immutable.
 - **404 handling:** coverage doesn't change, so a `404` trusts an existing stale
   row if present; otherwise it's reported as **no coverage**.
 
-### 2. Grid forecast (short-lived, revalidated)
+### Grid forecast (short-lived, revalidated)
 
 `GET /gridpoints/{office}/{x},{y}/forecast` returns the multi-day forecast.
 
@@ -6823,6 +8172,16 @@ For a forecast cell, on each request:
 The same fresh/stale/conditional logic applies to metadata, except metadata uses
 its fixed 30-day TTL instead of `Cache-Control`.
 
+## Supplementary data (primary location only)
+
+Alongside the forecast, the **primary** location also gathers, best-effort: the
+active alerts, the hourly forecast (capped at 24 entries), the latest station
+observation, and the set of source endpoints/zones. These run concurrently and
+each is wrapped so a failure or absence never blocks the core forecast — they're
+extras. The grid-recenter path (an ephemeral peek at a neighbouring cell) skips
+them entirely. All of these calls still flow through Tier 0, so they're
+de-duplicated, negatively cached, and served stale-on-error like everything else.
+
 ## Offline behaviour
 
 When NWS is unreachable, the repository returns the freshest cached data it has
@@ -6841,15 +8200,26 @@ ordered by approximate distance from the user's cell.
 
 Merely-expired rows are deliberately **kept** — they're the offline fallback.
 Only rows that expired **more than a week ago** are pruned (opportunistically, at
-the start of an area request), so the database stays small without sacrificing
+the start of an area request for the domain cache, and periodically inside the
+transport cache), so the database stays small without sacrificing
 stale-on-error.
+
+## Schema note
+
+Adding the transport cache introduced the `http_cache` table, taking the Room
+database to **version 2**. It's a pure cache DB opened with
+`fallbackToDestructiveMigration`, so a version bump simply drops and rebuilds it;
+the dropped rows are transparently re-fetched from NWS. The exported schema JSON
+is committed for review.
 
 ## What's tested
 
 `CacheFreshnessTest` covers `max-age` parsing and TTL clamping; `WeatherRepositoryTest`
 covers fresh-hit (no network), cold fetch + tile assembly, stale-on-error,
-no-coverage, the conditional-GET header wiring, and TTL defaulting/clamping
-end-to-end with in-memory fakes.
+no-coverage, the conditional-GET header wiring, TTL defaulting/clamping, and the
+supplementary alerts being fetched for the primary location but skipped on
+recenter — all end-to-end with in-memory fakes. The transport interceptor's
+TTL-selection helper (`ttlMsForStatus`) is pure and unit-testable in isolation.
 
 
 ################################################################################
@@ -8592,12 +9962,539 @@ include(":app")
 
 
 ################################################################################
+# FILE: ui/components/AlertsBanner.kt
+################################################################################
+
+--- METADATA ---
+  File name:             AlertsBanner.kt
+  Relative path:         ui/components/AlertsBanner.kt
+  Absolute path:         /home/kushal/src/kotlin/myweather/ui/components/AlertsBanner.kt
+  Size:                  6.3 KiB (6536 bytes)
+  Last modified:         2026-06-24 18:55:08.375007363 -0400
+  Permissions:           -rw-r--r--
+  Owner:                 kushal:kushal
+  Inode:                 16817469
+  Hard links:            1
+  MIME type:             text/plain
+  SHA-256:               bb1ca251b1a87f53ed514ba9fd7b9db6d99986f70d66c4e8e4daa943b1e536d6
+  Last git commit:       84e5861 2026-06-24 18:57:44 -0400 add all changes
+
+--- CONTENT ---
+package com.kusl.myweather.ui.components
+
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import com.kusl.myweather.domain.model.WeatherAlert
+import com.kusl.myweather.ui.AppIcons
+
+/**
+ * The active watches/warnings/advisories for the current location, shown at the
+ * very top of the dashboard because this is life-and-safety information.
+ *
+ * Alerts arrive already sorted most-severe-first (see NwsMappers.toAlerts). The
+ * most severe one starts expanded; the rest start collapsed but can be opened.
+ * The human-authored [WeatherAlert.description] and [WeatherAlert.instruction]
+ * are rendered **verbatim** — never trimmed, summarised, or reflowed.
+ */
+@Composable
+fun AlertsBanner(
+    alerts: List<WeatherAlert>,
+    modifier: Modifier = Modifier,
+) {
+    if (alerts.isEmpty()) return
+
+    // Per-alert expansion, keyed by stable id. Absent => fall back to the
+    // default (top/most-severe alert open, the rest closed). Re-keyed on the
+    // list itself so a refresh with new alerts resets to that default.
+    val expansion = remember(alerts) { mutableStateMapOf<String, Boolean>() }
+
+    Column(modifier = modifier.fillMaxWidth()) {
+        Text(
+            text = if (alerts.size == 1) "Active alert" else "Active alerts (${alerts.size})",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.padding(start = 4.dp, bottom = 8.dp),
+        )
+        alerts.forEachIndexed { index, alert ->
+            val expanded = expansion[alert.id] ?: (index == 0)
+            AlertCard(
+                alert = alert,
+                expanded = expanded,
+                onToggle = { expansion[alert.id] = !expanded },
+                modifier = Modifier.padding(bottom = 8.dp),
+            )
+        }
+    }
+}
+
+@Composable
+private fun AlertCard(
+    alert: WeatherAlert,
+    expanded: Boolean,
+    onToggle: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val scheme = MaterialTheme.colorScheme
+    // Colour by severity so the most dangerous alerts read as alarming.
+    val (container, content) = when (WeatherAlert.severityRank(alert.severity)) {
+        0, 1 -> scheme.errorContainer to scheme.onErrorContainer        // Extreme / Severe
+        2 -> scheme.tertiaryContainer to scheme.onTertiaryContainer      // Moderate
+        else -> scheme.secondaryContainer to scheme.onSecondaryContainer // Minor / Unknown
+    }
+
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = container, contentColor = content),
+    ) {
+        // Header: always visible; tap anywhere on it to expand/collapse.
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onToggle)
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Icon(AppIcons.Warning, contentDescription = null, tint = content)
+            Column(Modifier.weight(1f)) {
+                Text(
+                    text = alert.event,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = content,
+                )
+                alert.headline?.takeIf { it.isNotBlank() }?.let {
+                    Text(text = it, style = MaterialTheme.typography.bodyMedium, color = content)
+                }
+            }
+            Icon(
+                imageVector = if (expanded) AppIcons.ExpandLess else AppIcons.ExpandMore,
+                contentDescription = if (expanded) "Collapse" else "Expand",
+                tint = content,
+            )
+        }
+
+        // Where/when stays visible even when collapsed, so the gist is always there.
+        Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp)) {
+            alert.areaDesc?.takeIf { it.isNotBlank() }?.let {
+                Text(it, style = MaterialTheme.typography.bodyMedium, color = content)
+            }
+            alert.expires?.takeIf { it.isNotBlank() }?.let {
+                Text("Expires $it", style = MaterialTheme.typography.labelMedium, color = content)
+            }
+
+            if (expanded) {
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 12.dp),
+                    color = content.copy(alpha = 0.3f),
+                )
+                // Verbatim NWS narrative — the "what / where / when / impacts".
+                Text(text = alert.description, style = MaterialTheme.typography.bodyMedium, color = content)
+                alert.instruction?.takeIf { it.isNotBlank() }?.let {
+                    Text(
+                        text = "Instructions",
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.SemiBold,
+                        color = content,
+                        modifier = Modifier.padding(top = 12.dp),
+                    )
+                    Text(text = it, style = MaterialTheme.typography.bodyMedium, color = content)
+                }
+                Text(
+                    text = "Severity ${alert.severity} \u00B7 Urgency ${alert.urgency} \u00B7 " +
+                        "Certainty ${alert.certainty}",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = content,
+                    modifier = Modifier.padding(top = 12.dp),
+                )
+                alert.senderName?.takeIf { it.isNotBlank() }?.let {
+                    Text(it, style = MaterialTheme.typography.labelMedium, color = content)
+                }
+            }
+        }
+    }
+}
+
+
+################################################################################
+# FILE: ui/components/PeriodDetailSheet.kt
+################################################################################
+
+--- METADATA ---
+  File name:             PeriodDetailSheet.kt
+  Relative path:         ui/components/PeriodDetailSheet.kt
+  Absolute path:         /home/kushal/src/kotlin/myweather/ui/components/PeriodDetailSheet.kt
+  Size:                  4.1 KiB (4247 bytes)
+  Last modified:         2026-06-24 18:55:39.578741925 -0400
+  Permissions:           -rw-r--r--
+  Owner:                 kushal:kushal
+  Inode:                 16817478
+  Hard links:            1
+  MIME type:             text/plain
+  SHA-256:               3b0e71d0642300ea95c86f9495686234245e9f53bddb6aec856420f8b39e0d5f
+  Last git commit:       84e5861 2026-06-24 18:57:44 -0400 add all changes
+
+--- CONTENT ---
+package com.kusl.myweather.ui.components
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import com.kusl.myweather.domain.model.ForecastPeriod
+
+/**
+ * A bottom sheet showing every detail NWS gives us for one forecast period,
+ * opened by tapping the headline card or any "upcoming" period. Read-only — it's
+ * purely a richer view of data we already hold, so no network call is involved.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PeriodDetailSheet(
+    period: ForecastPeriod,
+    onDismiss: () -> Unit,
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .padding(start = 24.dp, end = 24.dp, bottom = 32.dp),
+        ) {
+            Text(
+                text = period.name,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.SemiBold,
+            )
+            Text(
+                text = "${period.temperature}\u00B0${period.temperatureUnit}",
+                style = MaterialTheme.typography.displaySmall,
+                fontWeight = FontWeight.SemiBold,
+            )
+            period.shortForecast.takeIf { it.isNotBlank() }?.let {
+                Text(it, style = MaterialTheme.typography.titleMedium)
+            }
+
+            HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+
+            DetailRow("Time of day", if (period.isDaytime) "Daytime" else "Overnight")
+            period.probabilityOfPrecipitation?.let { DetailRow("Chance of precipitation", "$it%") }
+            DetailRow(
+                label = "Wind",
+                value = listOf(period.windSpeed, period.windDirection)
+                    .filter { it.isNotBlank() }
+                    .joinToString(" "),
+            )
+            DetailRow("Starts", period.startTime)
+            DetailRow("Ends", period.endTime)
+
+            period.detailedForecast.takeIf { it.isNotBlank() }?.let {
+                Text(
+                    text = "Detailed forecast",
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.padding(top = 16.dp, bottom = 4.dp),
+                )
+                Text(it, style = MaterialTheme.typography.bodyMedium)
+            }
+
+            // The icon is a URL; show it muted for the curious rather than hide it.
+            period.icon.takeIf { it.isNotBlank() }?.let {
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 16.dp),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun DetailRow(label: String, value: String) {
+    if (value.isBlank()) return
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Text(text = value, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
+    }
+}
+
+
+################################################################################
+# FILE: ui/components/WeatherExtras.kt
+################################################################################
+
+--- METADATA ---
+  File name:             WeatherExtras.kt
+  Relative path:         ui/components/WeatherExtras.kt
+  Absolute path:         /home/kushal/src/kotlin/myweather/ui/components/WeatherExtras.kt
+  Size:                  8.5 KiB (8705 bytes)
+  Last modified:         2026-06-24 18:56:03.834879190 -0400
+  Permissions:           -rw-r--r--
+  Owner:                 kushal:kushal
+  Inode:                 16817512
+  Hard links:            1
+  MIME type:             text/plain
+  SHA-256:               e267e57baf586f283a0ff5e6e21e19c7b0d58a9d08545e4908652b8e7269111a
+  Last git commit:       84e5861 2026-06-24 18:57:44 -0400 add all changes
+
+--- CONTENT ---
+package com.kusl.myweather.ui.components
+
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import com.kusl.myweather.domain.model.CurrentObservation
+import com.kusl.myweather.domain.model.ForecastPeriod
+import com.kusl.myweather.domain.model.LocationSources
+import com.kusl.myweather.ui.AppIcons
+import java.util.Locale
+import kotlin.math.roundToInt
+
+/** A horizontally-scrolling strip of the next several hours; tap a card for detail. */
+@Composable
+fun HourlyStrip(
+    periods: List<ForecastPeriod>,
+    onPeriodSelected: (ForecastPeriod) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    if (periods.isEmpty()) return
+    Column(modifier) {
+        Text(
+            "Hourly",
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(start = 4.dp, bottom = 8.dp),
+        )
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            items(periods, key = { it.number }) { period ->
+                OutlinedCard(
+                    modifier = Modifier
+                        .width(96.dp)
+                        .clickable { onPeriodSelected(period) },
+                ) {
+                    Column(Modifier.padding(10.dp)) {
+                        Text(hourLabel(period), style = MaterialTheme.typography.labelMedium, maxLines = 1)
+                        Text(
+                            "${period.temperature}\u00B0${period.temperatureUnit}",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                        Text(period.shortForecast, style = MaterialTheme.typography.bodySmall, maxLines = 2)
+                        period.probabilityOfPrecipitation?.takeIf { it > 0 }?.let {
+                            Text("$it%", style = MaterialTheme.typography.labelSmall)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/** "HH:MM" pulled from the ISO start time, falling back to the period number. */
+private fun hourLabel(period: ForecastPeriod): String =
+    if (period.startTime.length >= 16) period.startTime.drop(11).take(5) else "#${period.number}"
+
+/** The latest measured conditions from the nearest reporting station. */
+@Composable
+fun ObservationCard(
+    observation: CurrentObservation,
+    modifier: Modifier = Modifier,
+) {
+    OutlinedCard(modifier = modifier.fillMaxWidth()) {
+        Column(Modifier.padding(16.dp)) {
+            Text(
+                "Current conditions",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+            )
+            val subtitle = listOfNotNull(
+                observation.stationId?.let { "Station $it" },
+                observation.timestamp,
+            ).joinToString(" \u00B7 ")
+            if (subtitle.isNotBlank()) {
+                Text(
+                    subtitle,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            observation.textDescription?.takeIf { it.isNotBlank() }?.let {
+                Text(it, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(top = 8.dp))
+            }
+
+            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+
+            observation.temperatureF?.let { StatRow("Temperature", "${fmt1(it)}\u00B0F") }
+            observation.relativeHumidityPct?.let { StatRow("Humidity", "$it%") }
+            observation.windSpeedMph?.let { speed ->
+                val dir = observation.windDirectionDeg?.let { " ${degToCardinal(it)}" }.orEmpty()
+                val gust = observation.windGustMph?.let { " (gust ${fmt1(it)} mph)" }.orEmpty()
+                StatRow("Wind", "${fmt1(speed)} mph$dir$gust")
+            }
+            observation.dewpointF?.let { StatRow("Dew point", "${fmt1(it)}\u00B0F") }
+            observation.pressureInHg?.let { StatRow("Pressure", "${fmt2(it)} inHg") }
+            observation.visibilityMiles?.let { StatRow("Visibility", "${fmt1(it)} mi") }
+        }
+    }
+}
+
+/**
+ * Read-only, collapsed-by-default list of the official NWS sources behind this
+ * location's data — so a curious user can see (and follow) exactly which office,
+ * radar, zones, and endpoints back what they're looking at.
+ */
+@Composable
+fun LocationSourcesCard(
+    sources: LocationSources,
+    modifier: Modifier = Modifier,
+) {
+    val rows = buildList {
+        sources.forecastOffice?.let { add("Forecast office" to it) }
+        sources.radarStation?.let { add("Radar station" to it) }
+        sources.forecastZone?.let { add("Forecast zone" to it) }
+        sources.county?.let { add("County zone" to it) }
+        sources.fireWeatherZone?.let { add("Fire weather zone" to it) }
+        sources.forecastUrl?.let { add("Forecast" to it) }
+        sources.hourlyForecastUrl?.let { add("Hourly forecast" to it) }
+        sources.gridDataUrl?.let { add("Grid data" to it) }
+        sources.observationStationsUrl?.let { add("Observation stations" to it) }
+    }
+    if (rows.isEmpty()) return
+
+    var expanded by remember { mutableStateOf(false) }
+    OutlinedCard(modifier = modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { expanded = !expanded }
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Icon(
+                AppIcons.Info,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text("Data sources", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+            Icon(
+                imageVector = if (expanded) AppIcons.ExpandLess else AppIcons.ExpandMore,
+                contentDescription = if (expanded) "Collapse" else "Expand",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        if (expanded) {
+            Column(Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp)) {
+                rows.forEach { (label, value) ->
+                    Text(
+                        label,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 8.dp),
+                    )
+                    Text(value, style = MaterialTheme.typography.bodySmall)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun StatRow(label: String, value: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Text(
+            label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Text(value, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
+    }
+}
+
+private val CARDINALS = arrayOf(
+    "N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE",
+    "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW",
+)
+
+/** Map a wind bearing in degrees to a 16-point compass abbreviation. */
+private fun degToCardinal(deg: Int): String {
+    val normalized = ((deg % 360) + 360) % 360
+    return CARDINALS[(normalized / 22.5).roundToInt() % 16]
+}
+
+private fun fmt1(value: Double): String = String.format(Locale.US, "%.1f", value)
+private fun fmt2(value: Double): String = String.format(Locale.US, "%.2f", value)
+
+
+################################################################################
 # DUMP SUMMARY
 ################################################################################
-  Files dumped   : 85
-  Total size     : 291.5 KiB (298510 bytes)
+  Files dumped   : 90
+  Total size     : 365.2 KiB (374007 bytes)
   Output file    : /home/kushal/src/kotlin/myweather/docs/llm/dump.txt
-  Completed at   : 2026-06-24T18:49:05-04:00
+  Completed at   : 2026-06-24T18:57:57-04:00
 ################################################################################
 # END OF DUMP
 ################################################################################
