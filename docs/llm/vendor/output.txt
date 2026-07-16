@@ -9102,15 +9102,15 @@ toolchainVersion=21
   File name:             libs.versions.toml
   Relative path:         gradle/libs.versions.toml
   Absolute path:         /home/kushal/src/kotlin/myweather/gradle/libs.versions.toml
-  Size:                  5.8 KiB (6021 bytes)
-  Last modified:         2026-06-21 04:43:18.445303371 -0400
+  Size:                  5.8 KiB (6022 bytes)
+  Last modified:         2026-07-15 20:13:14.787456466 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 16460673
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               3d4c180638b50c309ef630d7728aef073f2a75d5ac7dd94df5a87f30d63890e0
-  Last git commit:       afdcd8b 2026-06-21 04:43:34 -0400 add response by claude
+  SHA-256:               f4d94019c4a0fc77973eb389ac9d8b2dbb703401064f95597ccdcdb39b37f62b
+  Last git commit:       4f9c3c2 2026-07-15 20:17:14 -0400 update dependencies
 
 --- CONTENT ---
 # ────────────────────────────────────────────────────────────────────────────
@@ -9126,13 +9126,13 @@ toolchainVersion=21
 # Build toolchain ----------------------------------------------------------------
 agp = "9.2.1"                  # Android Gradle Plugin
 kotlin = "2.4.0"               # Kotlin (K2). Compose-compiler & serialization plugins track this exact version.
-ksp = "2.3.9"                  # KSP2 — decoupled versioning; 2.3.9 supports Kotlin 2.2+ (incl. 2.4.0)
+ksp = "2.3.10"                  # KSP2 — decoupled versioning; 2.3.9 supports Kotlin 2.2+ (incl. 2.4.0)
 
 # AndroidX / Jetpack -------------------------------------------------------------
 coreKtx = "1.19.0"
 lifecycle = "2.11.0"
 activityCompose = "1.13.0"
-composeBom = "2026.06.00"      # Pins all androidx.compose.* artifact versions together
+composeBom = "2026.06.01"      # Pins all androidx.compose.* artifact versions together
 navigationCompose = "2.9.8"
 datastore = "1.2.1"
 room = "2.8.4"                 # Room 2.x (maintenance line); Kotlin-codegen via KSP
@@ -9656,19 +9656,19 @@ endlocal & "%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %GRADLE_OPTS% "-Dorg.grad
   Relative path:         gradle/wrapper/gradle-wrapper.properties
   Absolute path:         /home/kushal/src/kotlin/myweather/gradle/wrapper/gradle-wrapper.properties
   Size:                  281 B (281 bytes)
-  Last modified:         2026-06-20 10:58:10.570067399 -0400
+  Last modified:         2026-07-15 20:15:57.581666367 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 16257612
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               e74d4f107d2feab989b9a041a02e2d2b85567ff48415c9c7add5ecc19abd19f9
-  Last git commit:       e6a587b 2026-06-20 10:58:19 -0400 update manually
+  SHA-256:               c94d41b634a5e0ff8a2f812023697b1337eebac18e9962610356a1793f72896d
+  Last git commit:       4f9c3c2 2026-07-15 20:17:14 -0400 update dependencies
 
 --- CONTENT ---
 distributionBase=GRADLE_USER_HOME
 distributionPath=wrapper/dists
-distributionUrl=https\://services.gradle.org/distributions/gradle-9.6.0-bin.zip
+distributionUrl=https\://services.gradle.org/distributions/gradle-9.6.1-bin.zip
 networkTimeout=10000
 retries=0
 retryBackOffMs=500
@@ -9979,14 +9979,14 @@ include(":app")
 # DUMP SUMMARY
 ################################################################################
   Files dumped   : 90
-  Total size     : 365.2 KiB (374007 bytes)
+  Total size     : 365.2 KiB (374008 bytes)
   Output file    : /home/kushal/src/kotlin/myweather/docs/llm/dump.txt
-  Completed at   : 2026-06-25T17:27:40-04:00
+  Completed at   : 2026-07-15T20:18:32-04:00
 ################################################################################
 # END OF DUMP
 ################################################################################
 
-real	0m2.833s
-user	0m1.452s
-sys	0m1.659s
+real	0m2.857s
+user	0m1.381s
+sys	0m1.809s
 kushal@fedora:~/src/kotlin/myweather$ 
