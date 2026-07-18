@@ -9,7 +9,7 @@
 # ────────────────────────────────────────────────────────────────────────────
 [versions]
 # Build toolchain ----------------------------------------------------------------
-agp = "9.2.1"                  # Android Gradle Plugin
+agp = "9.3.0"                  # Android Gradle Plugin
 kotlin = "2.4.0"               # Kotlin (K2). Compose-compiler & serialization plugins track this exact version.
 ksp = "2.3.10"                  # KSP2 — decoupled versioning; 2.3.9 supports Kotlin 2.2+ (incl. 2.4.0)
 
